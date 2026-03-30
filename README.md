@@ -10,14 +10,14 @@ It provides a curl-like request command, a local account store, and a plugin sys
 ## Install
 
 ```bash
-bun install
-```
-
-Global install from npm:
-
-```bash
 npm install -g knox-wallet
 knox --help
+```
+
+Local development install:
+
+```bash
+bun install
 ```
 
 ## Run
@@ -142,6 +142,7 @@ cp examples/plugins/account-status-balances.ts .knox/plugins/
 ## Development
 
 ```bash
+bun install
 bun run typecheck
 ```
 
