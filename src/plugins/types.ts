@@ -1,6 +1,11 @@
 import type { PaymentIntent } from "../types.ts";
 
+type UserAddressContext = {
+  userAddress: `0x${string}`;
+};
+
 export type BeforeTransactionEvent = {
+  userAddress: UserAddressContext["userAddress"];
   intent: PaymentIntent;
   attempt: number;
 };
@@ -8,10 +13,8 @@ export type BeforeTransactionEvent = {
 export type BeforeTransactionResult = { action: "continue" } | { action: "abort"; reason: string };
 
 export type BeforeSignEvent = {
+  userAddress: UserAddressContext["userAddress"];
   intent: PaymentIntent;
-  account: {
-    address: `0x${string}`;
-  };
   challengeRaw: unknown;
   attempt: number;
 };
@@ -24,6 +27,7 @@ export type BeforeSignResult =
   | { action: "abort"; reason: string };
 
 export type AfterTransactionEvent = {
+  userAddress: UserAddressContext["userAddress"];
   intent: PaymentIntent;
   success: boolean;
   responseStatus?: number;
@@ -31,10 +35,8 @@ export type AfterTransactionEvent = {
 };
 
 export type AccountStatusEvent = {
-  account: {
-    address: `0x${string}`;
-    source: string;
-  };
+  userAddress: UserAddressContext["userAddress"];
+  accountSource: string;
 };
 
 export type AccountStatusResult = {
@@ -46,10 +48,7 @@ export type PluginSetupResult = {
 };
 
 export type PluginSetupEvent = {
-  account: {
-    address: `0x${string}`;
-    source: string;
-  } | null;
+  userAddress: UserAddressContext["userAddress"] | null;
 };
 
 export type AccountPlugin = {

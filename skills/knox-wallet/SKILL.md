@@ -87,11 +87,11 @@ knox request --protocol mpp "https://lorem.steer.fun/generate?count=1&units=para
 ```ts
 export type AccountPlugin = {
   name: string;
-  setup?: (event: PluginSetupEvent) => Promise<PluginSetupResult | void>;
-  beforeTransaction?: (event: BeforeTransactionEvent) => Promise<BeforeTransactionResult | void>;
-  beforeSign?: (event: BeforeSignEvent) => Promise<BeforeSignResult | void>;
+  setup?: (event: PluginSetupEvent) => Promise<PluginSetupResult | undefined>;
+  beforeTransaction?: (event: BeforeTransactionEvent) => Promise<BeforeTransactionResult | undefined>;
+  beforeSign?: (event: BeforeSignEvent) => Promise<BeforeSignResult | undefined>;
   afterTransaction?: (event: AfterTransactionEvent) => Promise<void>;
-  accountStatus?: (event: AccountStatusEvent) => Promise<AccountStatusResult | void>;
+  accountStatus?: (event: AccountStatusEvent) => Promise<AccountStatusResult | undefined>;
 };
 ```
 
@@ -111,10 +111,33 @@ type AccountStatusResult = { output: string };
 type PluginSetupResult = { output?: string };
 
 type PluginSetupEvent = {
-  account: {
-    address: `0x${string}`;
-    source: string;
-  } | null;
+  userAddress: `0x${string}` | null;
+};
+
+type BeforeTransactionEvent = {
+  userAddress: `0x${string}`;
+  intent: PaymentIntent;
+  attempt: number;
+};
+
+type BeforeSignEvent = {
+  userAddress: `0x${string}`;
+  intent: PaymentIntent;
+  challengeRaw: unknown;
+  attempt: number;
+};
+
+type AfterTransactionEvent = {
+  userAddress: `0x${string}`;
+  intent: PaymentIntent;
+  success: boolean;
+  responseStatus?: number;
+  error?: string;
+};
+
+type AccountStatusEvent = {
+  userAddress: `0x${string}`;
+  accountSource: string;
 };
 ```
 4. Use plugin events:
@@ -128,7 +151,7 @@ type PluginSetupEvent = {
    - `beforeSign`: run before signing and can return `intentOverride`.
    - `afterTransaction`: run after payment attempt; failures are logged and do not block command success.
    - `accountStatus`: run during `knox account status`; plugin output is displayed under account address/source with plugin name.
-   - `setup`: run on demand via `knox plugins setup <plugin-name>` and receives current account context (or `null`).
+   - `setup`: run on demand via `knox plugins setup <plugin-name>` and receives `userAddress` (or `null`).
 6. Expect output formatting for account status:
    - Knox prints:
      - `Active account: <address>`

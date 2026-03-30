@@ -74,12 +74,7 @@ async function handlePluginSetup({
   const result = await runner.runSetup({
     pluginName,
     event: {
-      account: active
-        ? {
-            address: active.address,
-            source: active.source,
-          }
-        : null,
+      userAddress: active?.address ?? null,
     },
   });
   console.log(`Setup complete: ${result.pluginName}`);
@@ -208,10 +203,8 @@ async function main(): Promise<void> {
         });
         const outputs = await runner.runAccountStatus({
           event: {
-            account: {
-              address: active.address,
-              source: active.source,
-            },
+            userAddress: active.address,
+            accountSource: active.source,
           },
         });
 

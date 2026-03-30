@@ -307,6 +307,7 @@ export async function requestWithPayment({
 
   await runner.runBeforeTransaction({
     event: {
+      userAddress: account.address,
       intent: baseIntent,
       attempt: 1,
     },
@@ -314,8 +315,8 @@ export async function requestWithPayment({
 
   const intent = await runner.runBeforeSign({
     event: {
+      userAddress: account.address,
       intent: baseIntent,
-      account: { address: account.address },
       challengeRaw: {
         paymentRequired: initial.headers.get("PAYMENT-REQUIRED"),
         wwwAuthenticate: initial.headers.get("WWW-Authenticate"),
@@ -357,6 +358,7 @@ export async function requestWithPayment({
 
     await runner.runAfterTransaction({
       event: {
+        userAddress: account.address,
         intent,
         success: result.response.status < 400,
         responseStatus: result.response.status,
@@ -382,6 +384,7 @@ export async function requestWithPayment({
 
     await runner.runAfterTransaction({
       event: {
+        userAddress: account.address,
         intent,
         success: false,
         error: message,

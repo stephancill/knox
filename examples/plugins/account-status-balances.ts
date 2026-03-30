@@ -47,18 +47,18 @@ async function readErc20Balance({
 
 const plugin: AccountPlugin = {
   name: "account-status-balances",
-  async setup({ account }) {
+  async setup({ userAddress }) {
     const { baseRpcUrl, tempoRpcUrl } = resolveRpcUrls();
     return {
       output: [
         "Balance plugin configured.",
-        `Account: ${account?.address ?? "[none]"}`,
+        `Account: ${userAddress ?? "[none]"}`,
         `Base RPC: ${baseRpcUrl}`,
         `Tempo RPC: ${tempoRpcUrl}`,
       ].join("\n"),
     };
   },
-  async accountStatus({ account }) {
+  async accountStatus({ userAddress }) {
     const { baseRpcUrl, tempoRpcUrl } = resolveRpcUrls();
 
     let baseUsdc = "[unavailable]";
@@ -68,7 +68,7 @@ const plugin: AccountPlugin = {
       baseUsdc = await readErc20Balance({
         rpcUrl: baseRpcUrl,
         tokenAddress: BASE_USDC_ADDRESS,
-        accountAddress: account.address,
+        accountAddress: userAddress,
         chain: base,
       });
     } catch (error) {
@@ -81,7 +81,7 @@ const plugin: AccountPlugin = {
         tempoToken = await readErc20Balance({
           rpcUrl: tempoRpcUrl,
           tokenAddress: TEMPO_TOKEN_ADDRESS,
-          accountAddress: account.address,
+          accountAddress: userAddress,
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : String(error);

@@ -55,9 +55,9 @@ describe("PluginRunner", () => {
 
     const result = await runner.runBeforeSign({
       event: {
+        userAddress: "0x0000000000000000000000000000000000000001",
         attempt: 1,
         challengeRaw: {},
-        account: { address: "0x0000000000000000000000000000000000000001" },
         intent: {
           protocol: "x402",
           mode: "exact",
@@ -93,6 +93,7 @@ describe("PluginRunner", () => {
     await expect(
       runner.runBeforeTransaction({
         event: {
+          userAddress: "0x0000000000000000000000000000000000000001",
           attempt: 1,
           intent: {
             protocol: "mpp",
@@ -141,10 +142,8 @@ describe("PluginRunner", () => {
 
     const outputs = await runner.runAccountStatus({
       event: {
-        account: {
-          address: "0x0000000000000000000000000000000000000001",
-          source: "created",
-        },
+        userAddress: "0x0000000000000000000000000000000000000001",
+        accountSource: "created",
       },
     });
 
@@ -171,8 +170,8 @@ describe("PluginRunner", () => {
       plugins: [
         {
           name: "setup-ok",
-          async setup({ account }) {
-            expect(account?.address).toBe("0x0000000000000000000000000000000000000001");
+          async setup({ userAddress }) {
+            expect(userAddress).toBe("0x0000000000000000000000000000000000000001");
             return { output: "ready" };
           },
         },
@@ -183,10 +182,7 @@ describe("PluginRunner", () => {
     const result = await runner.runSetup({
       pluginName: "setup-ok",
       event: {
-        account: {
-          address: "0x0000000000000000000000000000000000000001",
-          source: "created",
-        },
+        userAddress: "0x0000000000000000000000000000000000000001",
       },
     });
     expect(result).toEqual({
@@ -207,7 +203,7 @@ describe("PluginRunner", () => {
       runner.runSetup({
         pluginName: "no-setup",
         event: {
-          account: null,
+          userAddress: null,
         },
       }),
     ).rejects.toThrow("Plugin does not implement setup(): no-setup");
