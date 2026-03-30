@@ -1,0 +1,34 @@
+# dependencies
+node_modules/
+
+# build artifacts
+dist/
+out/
+coverage/
+*.lcov
+
+# runtime data
+.knox/
+*.db
+*.db-shm
+*.db-wal
+
+# local env
+.env
+.env.*
+!.env.example
+
+# logs and caches
+logs/
+*.log
+.cache/
+.eslintcache
+*.tsbuildinfo
+
+# local clone references
+third-party/
+
+# editors and OS
+.idea/
+.cursor/
+.DS_Store
