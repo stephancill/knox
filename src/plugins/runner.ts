@@ -3,12 +3,19 @@ import { KnoxError } from "../types.ts";
 import type { PaymentIntent } from "../types.ts";
 import type {
   AccountPlugin,
+  AccountStatusEvent,
+  AccountStatusResult,
   AfterTransactionEvent,
   BeforeSignEvent,
   BeforeSignResult,
   BeforeTransactionEvent,
   BeforeTransactionResult,
 } from "./types.ts";
+
+export type AccountStatusPluginOutput = {
+  pluginName: string;
+  output: string;
+};
 
 type RunnerOptions = {
   timeoutMs: number;
@@ -217,5 +224,57 @@ export class PluginRunner {
         });
       }
     }
+  }
+
+  async runAccountStatus({ event }: { event: AccountStatusEvent }): Promise<AccountStatusPluginOutput[]> {
+    const outputs: AccountStatusPluginOutput[] = [];
+    for (const plugin of this.plugins) {
+      if (!plugin.accountStatus) {
+        continue;
+      }
+
+      const start = performance.now();
+      try {
+        const result = await withTimeout<AccountStatusResult | void>({
+          promise: Promise.resolve(plugin.accountStatus(event)),
+          timeoutMs: this.options.timeoutMs,
+          label: `${plugin.name}.accountStatus`,
+        });
+        const ms = Math.round(performance.now() - start);
+        logPluginRun({
+          options: this.options,
+          pluginName: plugin.name,
+          eventName: "accountStatus",
+          status: "ok",
+          durationMs: ms,
+        });
+
+        if (result && "output" in result) {
+          if (typeof result.output !== "string") {
+            throw new Error("accountStatus output must be a string");
+          }
+          outputs.push({
+            pluginName: plugin.name,
+            output: result.output,
+          });
+        }
+      } catch (error) {
+        const ms = Math.round(performance.now() - start);
+        const message = error instanceof Error ? error.message : String(error);
+        logPluginRun({
+          options: this.options,
+          pluginName: plugin.name,
+          eventName: "accountStatus",
+          status: "failed",
+          durationMs: ms,
+          error: message,
+        });
+        outputs.push({
+          pluginName: plugin.name,
+          output: `[error] ${message}`,
+        });
+      }
+    }
+    return outputs;
   }
 }

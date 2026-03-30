@@ -13,6 +13,13 @@ It provides a curl-like request command, a local account store, and a plugin sys
 bun install
 ```
 
+Global install from npm:
+
+```bash
+npm install -g knox-wallet
+knox --help
+```
+
 ## Run
 
 ```bash
@@ -23,8 +30,8 @@ bun run src/cli.ts --help
 
 ```bash
 # account management
-bun run src/cli.ts account create
-bun run src/cli.ts account import --private-key <hex>
+bun run src/cli.ts account create --force
+bun run src/cli.ts account import --private-key <hex> --force
 bun run src/cli.ts account status
 
 # request execution
@@ -52,11 +59,73 @@ bun run src/cli.ts plugins list
 
 - Knox supports one local account for now.
 - Running `account create` or `account import` replaces the existing account.
+- If an account already exists, use `--force` with `account create` and `account import` to confirm replacement.
 
 ## Plugin Locations
 
 - `~/.knox/plugins/*.{ts,js,mjs,cjs}`
 - `.knox/plugins/*.{ts,js,mjs,cjs}`
+
+## Plugins API
+
+Plugin module shape:
+
+```ts
+export type AccountPlugin = {
+  name: string;
+  beforeTransaction?: (event: BeforeTransactionEvent) => Promise<BeforeTransactionResult | void>;
+  beforeSign?: (event: BeforeSignEvent) => Promise<BeforeSignResult | void>;
+  afterTransaction?: (event: AfterTransactionEvent) => Promise<void>;
+  accountStatus?: (event: AccountStatusEvent) => Promise<AccountStatusResult | void>;
+};
+```
+
+Event contracts:
+
+```ts
+type BeforeTransactionResult =
+  | { action: "continue" }
+  | { action: "abort"; reason: string };
+
+type BeforeSignResult =
+  | { action: "continue"; intentOverride?: Partial<PaymentIntent> }
+  | { action: "abort"; reason: string };
+
+type AccountStatusResult = { output: string };
+```
+
+Behavior:
+
+- `beforeTransaction`: fail-closed, can block payment.
+- `beforeSign`: fail-closed, can block payment and optionally mutate `PaymentIntent` via `intentOverride`.
+- `afterTransaction`: fail-open, errors are logged.
+- `accountStatus`: runs during `knox account status`; output is rendered as multiline text under plugin name.
+
+Minimal plugin example:
+
+```ts
+export default {
+  name: "status-note",
+  async accountStatus() {
+    return {
+      output: "All systems nominal\nReady to pay",
+    };
+  },
+};
+```
+
+Example plugins:
+
+- `examples/plugins/confirm-before-sign.ts`: interactive blocking confirmation before signing.
+- `examples/plugins/account-status-balances.ts`: reports Base USDC and Tempo token balances in `knox account status`.
+
+To activate an example plugin, copy it to one of the plugin directories:
+
+```bash
+mkdir -p .knox/plugins
+cp examples/plugins/confirm-before-sign.ts .knox/plugins/
+cp examples/plugins/account-status-balances.ts .knox/plugins/
+```
 
 ## Development
 

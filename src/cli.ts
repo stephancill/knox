@@ -6,6 +6,7 @@ import { createAccount, getActiveAccount, importAccount } from "./account/reposi
 import { parseRequestArgs } from "./http/request.ts";
 import { requestWithPayment } from "./payments/orchestrator.ts";
 import { loadPlugins } from "./plugins/loader.ts";
+import { PluginRunner } from "./plugins/runner.ts";
 import { getDb } from "./store/db.ts";
 import { KnoxError } from "./types.ts";
 
@@ -107,6 +108,31 @@ function handleCliError({ error }: { error: unknown }): never {
   process.exit(1);
 }
 
+function requireForceForReplacement({
+  force,
+  command,
+  existingAddress,
+}: {
+  force?: boolean;
+  command: string;
+  existingAddress?: string;
+}): void {
+  if (force || !existingAddress) {
+    return;
+  }
+
+  const warning = [
+    `Warning: this command will replace your current local account: ${existingAddress}`,
+    `Rerun with --force to continue: ${command} --force`,
+  ].join("\n");
+
+  throw new Error(warning);
+}
+
+function formatPluginOutputLines({ output }: { output: string }): string[] {
+  return output.split("\n").map((line) => `  ${line}`);
+}
+
 async function main(): Promise<void> {
   const program = new Command();
   const cwd = process.cwd();
@@ -130,20 +156,57 @@ async function main(): Promise<void> {
   account
     .command("status")
     .description("Show active account")
-    .action(() => {
+    .action(async () => {
       const active = getActiveAccount();
       if (!active) {
         console.log("No active account configured.");
         return;
       }
+
+      const flags = getGlobalFlags({ program });
       console.log(`Active account: ${active.address}`);
       console.log(`Source: ${active.source}`);
+
+      if (!flags.disablePlugins) {
+        const plugins = await loadPlugins({ cwd });
+        const runner = new PluginRunner({
+          plugins,
+          options: {
+            timeoutMs: flags.pluginsTimeoutMs,
+          },
+        });
+        const outputs = await runner.runAccountStatus({
+          event: {
+            account: {
+              address: active.address,
+              source: active.source,
+            },
+          },
+        });
+
+        if (outputs.length > 0) {
+          console.log("Plugin outputs:");
+          for (const item of outputs) {
+            console.log(`${item.pluginName}:`);
+            for (const line of formatPluginOutputLines({ output: item.output })) {
+              console.log(line);
+            }
+          }
+        }
+      }
     });
 
   account
     .command("create")
     .description("Create and activate a new account")
-    .action(() => {
+    .option("--force", "Acknowledge account replacement")
+    .action((options: { force?: boolean }) => {
+      const active = getActiveAccount();
+      requireForceForReplacement({
+        force: options.force,
+        command: "knox account create",
+        existingAddress: active?.address,
+      });
       const createdAccount = createAccount();
       console.log("Created account:");
       console.log(createdAccount.address);
@@ -153,7 +216,14 @@ async function main(): Promise<void> {
     .command("import")
     .description("Import and activate account from private key")
     .requiredOption("--private-key <hex>", "Hex private key")
-    .action((options: { privateKey: string }) => {
+    .option("--force", "Acknowledge account replacement")
+    .action((options: { privateKey: string; force?: boolean }) => {
+      const active = getActiveAccount();
+      requireForceForReplacement({
+        force: options.force,
+        command: "knox account import --private-key <hex>",
+        existingAddress: active?.address,
+      });
       const importedAccount = importAccount({ privateKey: options.privateKey });
       console.log("Imported and activated account:");
       console.log(importedAccount.address);
