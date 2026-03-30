@@ -22,8 +22,6 @@ type RootOptions = {
   protocol?: "auto" | "x402" | "mpp";
 };
 
-const DEFAULT_PLUGIN_TIMEOUT_MS = 10_000;
-
 function getGlobalFlags({ program }: { program: Command }): GlobalFlags {
   const options = program.opts<RootOptions>();
   return {
@@ -62,19 +60,15 @@ async function handlePluginsList({ cwd }: { cwd: string }): Promise<void> {
 async function handlePluginSetup({
   cwd,
   pluginName,
-  timeoutMs,
 }: {
   cwd: string;
   pluginName: string;
-  timeoutMs: number;
 }): Promise<void> {
   const active = getActiveAccount();
   const plugins = await loadPlugins({ cwd });
   const runner = new PluginRunner({
     plugins,
-    options: {
-      timeoutMs,
-    },
+    options: {},
   });
 
   const result = await runner.runSetup({
@@ -210,9 +204,7 @@ async function main(): Promise<void> {
         const plugins = await loadPlugins({ cwd });
         const runner = new PluginRunner({
           plugins,
-          options: {
-            timeoutMs: DEFAULT_PLUGIN_TIMEOUT_MS,
-          },
+          options: {},
         });
         const outputs = await runner.runAccountStatus({
           event: {
@@ -300,7 +292,6 @@ async function main(): Promise<void> {
       await handlePluginSetup({
         cwd,
         pluginName,
-        timeoutMs: DEFAULT_PLUGIN_TIMEOUT_MS,
       });
     });
 

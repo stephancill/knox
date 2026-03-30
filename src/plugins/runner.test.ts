@@ -50,7 +50,7 @@ describe("PluginRunner", () => {
 
     const runner = new PluginRunner({
       plugins,
-      options: { timeoutMs: 1000 },
+      options: {},
     });
 
     const result = await runner.runBeforeSign({
@@ -87,7 +87,7 @@ describe("PluginRunner", () => {
           },
         },
       ],
-      options: { timeoutMs: 1000 },
+      options: {},
     });
 
     await expect(
@@ -136,7 +136,7 @@ describe("PluginRunner", () => {
           },
         },
       ],
-      options: { timeoutMs: 1000 },
+      options: {},
     });
 
     const outputs = await runner.runAccountStatus({
@@ -177,7 +177,7 @@ describe("PluginRunner", () => {
           },
         },
       ],
-      options: { timeoutMs: 1000 },
+      options: {},
     });
 
     const result = await runner.runSetup({
@@ -200,7 +200,7 @@ describe("PluginRunner", () => {
 
     const runner = new PluginRunner({
       plugins: [{ name: "no-setup" }],
-      options: { timeoutMs: 1000 },
+      options: {},
     });
 
     await expect(

@@ -21,8 +21,6 @@ type RequestWithPaymentOptions = {
   dryRun: boolean;
 };
 
-const DEFAULT_PLUGIN_TIMEOUT_MS = 10_000;
-
 function resolveProtocol({
   response,
   preferredProtocol,
@@ -258,7 +256,6 @@ export async function requestWithPayment({
   const runner = new PluginRunner({
     plugins,
     options: {
-      timeoutMs: DEFAULT_PLUGIN_TIMEOUT_MS,
       transactionId: txId,
     },
   });
