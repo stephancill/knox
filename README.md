@@ -46,6 +46,7 @@ bun run src/cli.ts --dry-run request --protocol x402 "https://lorem.steer.fun/ge
 bun run src/cli.ts tx list
 bun run src/cli.ts tx show <id>
 bun run src/cli.ts plugins list
+bun run src/cli.ts plugins setup <plugin-name>
 ```
 
 ## Global Flags
@@ -73,6 +74,7 @@ Plugin module shape:
 ```ts
 export type AccountPlugin = {
   name: string;
+  setup?: () => Promise<PluginSetupResult | void>;
   beforeTransaction?: (event: BeforeTransactionEvent) => Promise<BeforeTransactionResult | void>;
   beforeSign?: (event: BeforeSignEvent) => Promise<BeforeSignResult | void>;
   afterTransaction?: (event: AfterTransactionEvent) => Promise<void>;
@@ -92,6 +94,8 @@ type BeforeSignResult =
   | { action: "abort"; reason: string };
 
 type AccountStatusResult = { output: string };
+
+type PluginSetupResult = { output?: string };
 ```
 
 Behavior:
@@ -100,6 +104,7 @@ Behavior:
 - `beforeSign`: fail-closed, can block payment and optionally mutate `PaymentIntent` via `intentOverride`.
 - `afterTransaction`: fail-open, errors are logged.
 - `accountStatus`: runs during `knox account status`; output is rendered as multiline text under plugin name.
+- `setup`: runs when invoking `knox plugins setup <plugin-name>`.
 
 Minimal plugin example:
 

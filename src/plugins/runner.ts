@@ -10,11 +10,17 @@ import type {
   BeforeSignResult,
   BeforeTransactionEvent,
   BeforeTransactionResult,
+  PluginSetupResult,
 } from "./types.ts";
 
 export type AccountStatusPluginOutput = {
   pluginName: string;
   output: string;
+};
+
+export type PluginSetupOutput = {
+  pluginName: string;
+  output?: string;
 };
 
 type RunnerOptions = {
@@ -276,5 +282,49 @@ export class PluginRunner {
       }
     }
     return outputs;
+  }
+
+  async runSetup({ pluginName }: { pluginName: string }): Promise<PluginSetupOutput> {
+    const plugin = this.plugins.find((item) => item.name === pluginName);
+    if (!plugin) {
+      throw new Error(`Plugin not found: ${pluginName}`);
+    }
+    if (!plugin.setup) {
+      throw new Error(`Plugin does not implement setup(): ${pluginName}`);
+    }
+
+    const start = performance.now();
+    try {
+      const result = await withTimeout<PluginSetupResult | void>({
+        promise: Promise.resolve(plugin.setup()),
+        timeoutMs: this.options.timeoutMs,
+        label: `${plugin.name}.setup`,
+      });
+      const ms = Math.round(performance.now() - start);
+      logPluginRun({
+        options: this.options,
+        pluginName: plugin.name,
+        eventName: "setup",
+        status: "ok",
+        durationMs: ms,
+      });
+
+      return {
+        pluginName: plugin.name,
+        output: result?.output,
+      };
+    } catch (error) {
+      const ms = Math.round(performance.now() - start);
+      const message = error instanceof Error ? error.message : String(error);
+      logPluginRun({
+        options: this.options,
+        pluginName: plugin.name,
+        eventName: "setup",
+        status: "failed",
+        durationMs: ms,
+        error: message,
+      });
+      throw new Error(`Plugin setup failed (${plugin.name}): ${message}`);
+    }
   }
 }

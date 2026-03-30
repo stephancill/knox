@@ -43,10 +43,15 @@ export type AccountStatusResult = {
   output: string;
 };
 
+export type PluginSetupResult = {
+  output?: string;
+};
+
 export type AccountPlugin = {
   name: string;
   beforeTransaction?: (e: BeforeTransactionEvent) => Promise<BeforeTransactionResult | void>;
   beforeSign?: (e: BeforeSignEvent) => Promise<BeforeSignResult | void>;
   afterTransaction?: (e: AfterTransactionEvent) => Promise<void>;
   accountStatus?: (e: AccountStatusEvent) => Promise<AccountStatusResult | void>;
+  setup?: () => Promise<PluginSetupResult | void>;
 };

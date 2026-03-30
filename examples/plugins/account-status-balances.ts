@@ -47,6 +47,16 @@ async function readErc20Balance({
 
 const plugin: AccountPlugin = {
   name: "account-status-balances",
+  async setup() {
+    const { baseRpcUrl, tempoRpcUrl } = resolveRpcUrls();
+    return {
+      output: [
+        "Balance plugin configured.",
+        `Base RPC: ${baseRpcUrl}`,
+        `Tempo RPC: ${tempoRpcUrl}`,
+      ].join("\n"),
+    };
+  },
   async accountStatus({ account }) {
     const { baseRpcUrl, tempoRpcUrl } = resolveRpcUrls();
 

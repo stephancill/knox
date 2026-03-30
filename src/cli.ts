@@ -57,6 +57,32 @@ async function handlePluginsList({ cwd }: { cwd: string }): Promise<void> {
   }
 }
 
+async function handlePluginSetup({
+  cwd,
+  pluginName,
+  timeoutMs,
+}: {
+  cwd: string;
+  pluginName: string;
+  timeoutMs: number;
+}): Promise<void> {
+  const plugins = await loadPlugins({ cwd });
+  const runner = new PluginRunner({
+    plugins,
+    options: {
+      timeoutMs,
+    },
+  });
+
+  const result = await runner.runSetup({ pluginName });
+  console.log(`Setup complete: ${result.pluginName}`);
+  if (result.output) {
+    for (const line of formatPluginOutputLines({ output: result.output })) {
+      console.log(line);
+    }
+  }
+}
+
 async function handleTransactionsList(): Promise<void> {
   const db = getDb();
   const rows = db
@@ -253,6 +279,19 @@ async function main(): Promise<void> {
     .description("List discovered plugins")
     .action(async () => {
       await handlePluginsList({ cwd });
+    });
+
+  plugins
+    .command("setup")
+    .description("Run setup for a specific plugin")
+    .argument("<pluginName>", "Plugin name")
+    .action(async (pluginName: string) => {
+      const flags = getGlobalFlags({ program });
+      await handlePluginSetup({
+        cwd,
+        pluginName,
+        timeoutMs: flags.pluginsTimeoutMs,
+      });
     });
 
   program

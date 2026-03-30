@@ -163,4 +163,39 @@ describe("PluginRunner", () => {
       },
     ]);
   });
+
+  test("runs plugin setup and returns output", async () => {
+    await setupIsolatedHome();
+
+    const runner = new PluginRunner({
+      plugins: [
+        {
+          name: "setup-ok",
+          async setup() {
+            return { output: "ready" };
+          },
+        },
+      ],
+      options: { timeoutMs: 1000 },
+    });
+
+    const result = await runner.runSetup({ pluginName: "setup-ok" });
+    expect(result).toEqual({
+      pluginName: "setup-ok",
+      output: "ready",
+    });
+  });
+
+  test("fails plugin setup when setup is missing", async () => {
+    await setupIsolatedHome();
+
+    const runner = new PluginRunner({
+      plugins: [{ name: "no-setup" }],
+      options: { timeoutMs: 1000 },
+    });
+
+    await expect(runner.runSetup({ pluginName: "no-setup" })).rejects.toThrow(
+      "Plugin does not implement setup(): no-setup",
+    );
+  });
 });
