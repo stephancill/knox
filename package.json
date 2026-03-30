@@ -1,6 +1,6 @@
 {
   "name": "knox-wallet",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "CLI payment client for x402 and MPP paid APIs",
   "module": "src/cli.ts",
   "type": "module",
@@ -14,11 +14,23 @@
     "type": "git",
     "url": "https://github.com/stephancill/knox"
   },
-  "keywords": ["cli", "crypto", "wallet", "x402", "mpp", "payments"],
+  "keywords": [
+    "cli",
+    "crypto",
+    "wallet",
+    "x402",
+    "mpp",
+    "payments"
+  ],
   "engines": {
     "bun": ">=1.3.0"
   },
-  "files": ["src", "docs", "README.md", "LICENSE"],
+  "files": [
+    "src",
+    "docs",
+    "README.md",
+    "LICENSE"
+  ],
   "publishConfig": {
     "access": "public"
   },
