@@ -76,7 +76,6 @@ knox request --protocol mpp "https://lorem.steer.fun/generate?count=1&units=para
 1. `--protocol auto|x402|mpp`
 2. `--dry-run`
 3. `--no-plugins`
-4. `--plugins-timeout-ms <ms>`
 
 ## Plugins
 

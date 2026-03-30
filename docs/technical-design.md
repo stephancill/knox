@@ -139,7 +139,6 @@ Supported module formats:
 CLI switches:
 
 1. `--no-plugins`: disable all plugins for current request.
-2. `--plugins-timeout-ms <n>`: override default timeout.
 
 ## 7. Key Data Contracts
 

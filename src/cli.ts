@@ -12,7 +12,6 @@ import { KnoxError } from "./types.ts";
 
 type GlobalFlags = {
   disablePlugins: boolean;
-  pluginsTimeoutMs: number;
   protocol: "auto" | "x402" | "mpp";
   dryRun: boolean;
 };
@@ -20,15 +19,15 @@ type GlobalFlags = {
 type RootOptions = {
   dryRun?: boolean;
   plugins?: boolean;
-  pluginsTimeoutMs?: number;
   protocol?: "auto" | "x402" | "mpp";
 };
+
+const DEFAULT_PLUGIN_TIMEOUT_MS = 10_000;
 
 function getGlobalFlags({ program }: { program: Command }): GlobalFlags {
   const options = program.opts<RootOptions>();
   return {
     disablePlugins: options.plugins === false,
-    pluginsTimeoutMs: options.pluginsTimeoutMs ?? 10_000,
     protocol: options.protocol ?? "auto",
     dryRun: options.dryRun ?? false,
   };
@@ -128,7 +127,6 @@ async function handleRequest({ args, flags, cwd }: { args: string[]; flags: Glob
     request: parsed.options,
     cwd,
     disablePlugins: flags.disablePlugins,
-    pluginsTimeoutMs: flags.pluginsTimeoutMs,
     preferredProtocol: flags.protocol,
     dryRun: flags.dryRun,
   });
@@ -185,7 +183,6 @@ async function main(): Promise<void> {
     .showHelpAfterError()
     .option("--dry-run", "Parse payment challenge and print plan without signing or paying")
     .option("--no-plugins", "Disable all plugins")
-    .option("--plugins-timeout-ms <ms>", "Plugin timeout in milliseconds", (value) => Number(value), 10_000)
     .addOption(
       new Command()
         .createOption("--protocol <protocol>", "Preferred payment protocol")
@@ -214,7 +211,7 @@ async function main(): Promise<void> {
         const runner = new PluginRunner({
           plugins,
           options: {
-            timeoutMs: flags.pluginsTimeoutMs,
+            timeoutMs: DEFAULT_PLUGIN_TIMEOUT_MS,
           },
         });
         const outputs = await runner.runAccountStatus({
@@ -300,11 +297,10 @@ async function main(): Promise<void> {
     .description("Run setup for a specific plugin")
     .argument("<pluginName>", "Plugin name")
     .action(async (pluginName: string) => {
-      const flags = getGlobalFlags({ program });
       await handlePluginSetup({
         cwd,
         pluginName,
-        timeoutMs: flags.pluginsTimeoutMs,
+        timeoutMs: DEFAULT_PLUGIN_TIMEOUT_MS,
       });
     });
 
