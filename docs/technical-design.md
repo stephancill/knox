@@ -139,7 +139,6 @@ Supported module formats:
 CLI switches:
 
 1. `--no-plugins`: disable all plugins for current request.
-2. `--plugins-timeout-ms <n>`: override default timeout.
 
 ## 7. Key Data Contracts
 
@@ -281,9 +280,8 @@ Output behavior:
 
 1. Plugins are local and trusted by operator; no remote loading in MVP.
 2. No secrets printed to logs.
-3. Plugin timeout defaults to 10 seconds per plugin event.
-4. `before*` plugin events fail-closed to avoid unsafe auto-sign.
-5. `--no-plugins` available for operational recovery.
+3. `before*` plugin events fail-closed to avoid unsafe auto-sign.
+4. `--no-plugins` available for operational recovery.
 
 ## 13. Testing Strategy
 

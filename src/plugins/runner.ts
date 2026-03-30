@@ -25,32 +25,8 @@ export type PluginSetupOutput = {
 };
 
 type RunnerOptions = {
-  timeoutMs: number;
   transactionId?: string;
 };
-
-function withTimeout<T>({
-  promise,
-  timeoutMs,
-  label,
-}: {
-  promise: Promise<T>;
-  timeoutMs: number;
-  label: string;
-}): Promise<T> {
-  return new Promise((resolve, reject) => {
-    const id = setTimeout(() => reject(new Error(`${label} timed out after ${timeoutMs}ms`)), timeoutMs);
-    promise
-      .then((result) => {
-        clearTimeout(id);
-        resolve(result);
-      })
-      .catch((err) => {
-        clearTimeout(id);
-        reject(err);
-      });
-  });
-}
 
 function logPluginRun({
   options,
@@ -99,11 +75,7 @@ export class PluginRunner {
       }
       const start = performance.now();
       try {
-        const result = await withTimeout<BeforeTransactionResult | undefined>({
-          promise: Promise.resolve(plugin.beforeTransaction(event)),
-          timeoutMs: this.options.timeoutMs,
-          label: `${plugin.name}.beforeTransaction`,
-        });
+        const result = await Promise.resolve(plugin.beforeTransaction(event));
         const ms = Math.round(performance.now() - start);
         if (result?.action === "abort") {
           logPluginRun({
@@ -150,11 +122,7 @@ export class PluginRunner {
       }
       const start = performance.now();
       try {
-        const result = await withTimeout<BeforeSignResult | undefined>({
-          promise: Promise.resolve(plugin.beforeSign({ ...event, intent })),
-          timeoutMs: this.options.timeoutMs,
-          label: `${plugin.name}.beforeSign`,
-        });
+        const result = await Promise.resolve(plugin.beforeSign({ ...event, intent }));
         const ms = Math.round(performance.now() - start);
         if (result?.action === "abort") {
           logPluginRun({
@@ -205,11 +173,7 @@ export class PluginRunner {
       }
       const start = performance.now();
       try {
-        await withTimeout<void>({
-          promise: Promise.resolve(plugin.afterTransaction(event)),
-          timeoutMs: this.options.timeoutMs,
-          label: `${plugin.name}.afterTransaction`,
-        });
+        await Promise.resolve(plugin.afterTransaction(event));
         const ms = Math.round(performance.now() - start);
         logPluginRun({
           options: this.options,
@@ -242,11 +206,7 @@ export class PluginRunner {
 
       const start = performance.now();
       try {
-        const result = await withTimeout<AccountStatusResult | undefined>({
-          promise: Promise.resolve(plugin.accountStatus(event)),
-          timeoutMs: this.options.timeoutMs,
-          label: `${plugin.name}.accountStatus`,
-        });
+        const result = await Promise.resolve(plugin.accountStatus(event));
         const ms = Math.round(performance.now() - start);
         logPluginRun({
           options: this.options,
@@ -296,11 +256,7 @@ export class PluginRunner {
 
     const start = performance.now();
     try {
-      const result = await withTimeout<PluginSetupResult | undefined>({
-        promise: Promise.resolve(plugin.setup(event)),
-        timeoutMs: this.options.timeoutMs,
-        label: `${plugin.name}.setup`,
-      });
+      const result = await Promise.resolve(plugin.setup(event));
       const ms = Math.round(performance.now() - start);
       logPluginRun({
         options: this.options,

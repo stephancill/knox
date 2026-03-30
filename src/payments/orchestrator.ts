@@ -17,7 +17,6 @@ type RequestWithPaymentOptions = {
   request: RequestOptions;
   cwd: string;
   disablePlugins: boolean;
-  pluginsTimeoutMs: number;
   preferredProtocol: "auto" | "x402" | "mpp";
   dryRun: boolean;
 };
@@ -229,7 +228,6 @@ export async function requestWithPayment({
   request,
   cwd,
   disablePlugins,
-  pluginsTimeoutMs,
   preferredProtocol,
   dryRun,
 }: RequestWithPaymentOptions): Promise<Response> {
@@ -258,7 +256,6 @@ export async function requestWithPayment({
   const runner = new PluginRunner({
     plugins,
     options: {
-      timeoutMs: pluginsTimeoutMs,
       transactionId: txId,
     },
   });

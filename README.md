@@ -14,18 +14,6 @@ npm install -g knox-wallet
 knox --help
 ```
 
-Local development install:
-
-```bash
-bun install
-```
-
-## Run
-
-```bash
-knox --help
-```
-
 ## Core Commands
 
 ```bash
@@ -54,7 +42,6 @@ knox plugins setup <plugin-name>
 - `--protocol auto|x402|mpp`
 - `--dry-run`
 - `--no-plugins`
-- `--plugins-timeout-ms <ms>`
 
 ## Account Model
 
