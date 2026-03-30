@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stephancill/knox.git"
+    "url": "https://github.com/stephancill/knox"
   },
   "keywords": [
     "cli",
