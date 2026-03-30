@@ -1,5 +1,13 @@
 # knox-wallet
 
+## 0.0.4
+
+### Patch Changes
+
+- 5e52848: Remove the `--plugins-timeout-ms` global flag and stop timing out plugin hooks.
+
+  Also update CLI docs and skill documentation to remove references to the removed flag.
+
 ## 0.0.3
 
 ### Patch Changes
