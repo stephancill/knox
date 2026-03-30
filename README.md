@@ -133,6 +133,23 @@ cp examples/plugins/account-status-balances.ts .knox/plugins/
 bun run typecheck
 ```
 
+## Releasing
+
+Knox uses Changesets with a manually triggered GitHub Actions workflow.
+
+1. Add a changeset in your PR:
+
+```bash
+bun run changeset
+```
+
+2. Merge the PR into `main`.
+3. In GitHub, run the `Release` workflow manually from Actions.
+4. If there are unpublished changesets, the workflow creates or updates a version PR (`chore: version packages`).
+5. Merge the version PR, then run the `Release` workflow again to publish.
+
+Trusted publishing is configured for npm via GitHub OIDC, so no long-lived `NPM_TOKEN` is required for normal releases.
+
 ## Design
 
 - Technical design: `docs/technical-design.md`
