@@ -5,7 +5,7 @@ Knox is a Bun-based CLI payment client for paid HTTP APIs that support `402 Paym
 - x402
 - MPP
 
-It provides a curl-like request command, a local account store, and a plugin system with pre-sign hooks.
+It provides a curl-like request command, a local account store, and a plugin system with hooks throughout the request lifecycle.
 
 ## Install
 
