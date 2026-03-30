@@ -18,16 +18,22 @@ jobs:
 
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
+
+      - name: Print runtime versions
+        run: |
+          node -v
+          npm -v
+          bun -v
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
@@ -48,7 +54,7 @@ jobs:
 
     steps:
       - name: Checkout merge commit
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
 
@@ -56,10 +62,16 @@ jobs:
         uses: oven-sh/setup-bun@v2
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
-          node-version: 22
+          node-version: 24
           registry-url: https://registry.npmjs.org
+
+      - name: Print runtime versions
+        run: |
+          node -v
+          npm -v
+          bun -v
 
       - name: Install dependencies
         run: bun install --frozen-lockfile
