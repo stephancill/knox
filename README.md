@@ -162,7 +162,3 @@ bun run changeset
 5. Merge the version PR, then run the `Release` workflow again to publish.
 
 Trusted publishing is configured for npm via GitHub OIDC, so no long-lived `NPM_TOKEN` is required for normal releases.
-
-## Design
-
-- Technical design: `docs/technical-design.md`
