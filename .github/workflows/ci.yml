@@ -7,6 +7,30 @@ on:
   pull_request:
 
 jobs:
+  require-changeset:
+    if: github.event_name == 'pull_request' && github.head_ref != 'changeset-release/main'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 0
+
+      - name: Require changeset
+        run: |
+          changed_files=$(git diff --name-only "${{ github.event.pull_request.base.sha }}" "${{ github.event.pull_request.head.sha }}")
+          changeset_files=$(printf '%s\n' "$changed_files" | grep -E '^\.changeset/.+\.md$' || true)
+
+          if [ -z "$changeset_files" ]; then
+            echo "No changeset file found in this PR."
+            echo "Add one with: bun run changeset"
+            exit 1
+          fi
+
+          echo "Changeset files found:"
+          printf '%s\n' "$changeset_files"
+
   lint-and-format:
     runs-on: ubuntu-latest
 
