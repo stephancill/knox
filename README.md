@@ -23,30 +23,30 @@ knox --help
 ## Run
 
 ```bash
-bun run src/cli.ts --help
+knox --help
 ```
 
 ## Core Commands
 
 ```bash
 # account management
-bun run src/cli.ts account create --force
-bun run src/cli.ts account import --private-key <hex> --force
-bun run src/cli.ts account status
+knox account create --force
+knox account import --private-key <hex> --force
+knox account status
 
 # request execution
-bun run src/cli.ts request https://httpbin.org/get
-bun run src/cli.ts request --protocol x402 "https://lorem.steer.fun/generate?count=2&units=paragraphs&format=plain"
-bun run src/cli.ts request --protocol mpp "https://lorem.steer.fun/generate?count=2&units=paragraphs&format=plain"
+knox request https://httpbin.org/get
+knox request --protocol x402 "https://lorem.steer.fun/generate?count=2&units=paragraphs&format=plain"
+knox request --protocol mpp "https://lorem.steer.fun/generate?count=2&units=paragraphs&format=plain"
 
 # dry run (no signature, no payment)
-bun run src/cli.ts --dry-run request --protocol x402 "https://lorem.steer.fun/generate?count=2&units=paragraphs&format=plain"
+knox --dry-run request --protocol x402 "https://lorem.steer.fun/generate?count=2&units=paragraphs&format=plain"
 
 # transactions and plugins
-bun run src/cli.ts tx list
-bun run src/cli.ts tx show <id>
-bun run src/cli.ts plugins list
-bun run src/cli.ts plugins setup <plugin-name>
+knox tx list
+knox tx show <id>
+knox plugins list
+knox plugins setup <plugin-name>
 ```
 
 ## Global Flags

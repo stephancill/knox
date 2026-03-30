@@ -3,7 +3,7 @@ import { mkdir, mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 
-import { KnoxError } from "../types.ts";
+import type { KnoxError } from "../types.ts";
 import { PluginRunner } from "./runner.ts";
 import type { AccountPlugin } from "./types.ts";
 

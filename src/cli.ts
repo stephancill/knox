@@ -34,16 +34,19 @@ function getGlobalFlags({ program }: { program: Command }): GlobalFlags {
   };
 }
 
-async function printResponse({ response, includeHeaders }: { response: Response; includeHeaders: boolean }): Promise<void> {
+async function printResponse({
+  response,
+  includeHeaders,
+}: { response: Response; includeHeaders: boolean }): Promise<void> {
   const body = await response.text();
-    if (includeHeaders) {
-      console.log(`HTTP ${response.status}`);
-      for (const [key, value] of response.headers.entries()) {
-        console.log(`${key}: ${value}`);
-      }
-      console.log("");
+  if (includeHeaders) {
+    console.log(`HTTP ${response.status}`);
+    for (const [key, value] of response.headers.entries()) {
+      console.log(`${key}: ${value}`);
     }
-    console.log(body);
+    console.log("");
+  }
+  console.log(body);
 }
 
 async function handlePluginsList({ cwd }: { cwd: string }): Promise<void> {
@@ -107,7 +110,9 @@ async function handleTransactionsList(): Promise<void> {
 async function handleTransactionShow({ id }: { id: string }): Promise<void> {
   const db = getDb();
   const row = db
-    .query("SELECT id, created_at, protocol, url, method, asset, amount, network, status, tx_hash, error FROM transactions WHERE id = ? LIMIT 1")
+    .query(
+      "SELECT id, created_at, protocol, url, method, asset, amount, network, status, tx_hash, error FROM transactions WHERE id = ? LIMIT 1",
+    )
     .get(id) as Record<string, unknown> | null;
   if (!row) {
     console.log("Transaction not found.");
@@ -268,15 +273,13 @@ async function main(): Promise<void> {
 
   const tx = program.command("tx").description("Inspect payment transactions");
 
-  tx
-    .command("list")
+  tx.command("list")
     .description("List recent transactions")
     .action(async () => {
       await handleTransactionsList();
     });
 
-  tx
-    .command("show")
+  tx.command("show")
     .description("Show transaction details")
     .argument("<id>", "Transaction id")
     .action(async (id: string) => {

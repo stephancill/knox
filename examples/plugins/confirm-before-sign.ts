@@ -1,6 +1,6 @@
-import type { AccountPlugin } from "../../src/plugins/types.ts";
-import { createInterface } from "node:readline/promises";
 import { stdin, stdout } from "node:process";
+import { createInterface } from "node:readline/promises";
+import type { AccountPlugin } from "../../src/plugins/types.ts";
 
 async function askConfirmation({
   intent,

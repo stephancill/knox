@@ -76,7 +76,6 @@ export function parseRequestArgs({ args }: { args: string[] }): RequestParseResu
     }
     if (!token.startsWith("-")) {
       state.url = token;
-      continue;
     }
   }
 

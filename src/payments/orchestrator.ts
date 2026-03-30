@@ -4,7 +4,7 @@ import { Mppx, tempo } from "mppx/client";
 import { privateKeyToAccount } from "viem/accounts";
 
 import { getActiveAccount } from "../account/repository.ts";
-import { executeHttpRequest, type RequestOptions } from "../http/request.ts";
+import { type RequestOptions, executeHttpRequest } from "../http/request.ts";
 import { loadPlugins } from "../plugins/loader.ts";
 import { PluginRunner } from "../plugins/runner.ts";
 import { getDb, nowIso, randomId } from "../store/db.ts";
@@ -154,7 +154,9 @@ async function payWithX402({
 }): Promise<{ response: Response; txHash?: string }> {
   const signer = privateKeyToAccount(privateKey);
   const client = new x402Client((_, requirements) => {
-    const chosen = requirements.find((item) => requirementMatchesIntent({ requirement: item as Record<string, unknown>, intent }));
+    const chosen = requirements.find((item) =>
+      requirementMatchesIntent({ requirement: item as Record<string, unknown>, intent }),
+    );
     if (!chosen) {
       throw new KnoxError("PRECONDITION_FAILED", "Mutated intent does not match any x402 accepted requirement", {
         network: intent.network,

@@ -14,23 +14,11 @@
     "type": "git",
     "url": "https://github.com/stephancill/knox"
   },
-  "keywords": [
-    "cli",
-    "crypto",
-    "wallet",
-    "x402",
-    "mpp",
-    "payments"
-  ],
+  "keywords": ["cli", "crypto", "wallet", "x402", "mpp", "payments"],
   "engines": {
     "bun": ">=1.3.0"
   },
-  "files": [
-    "src",
-    "docs",
-    "README.md",
-    "LICENSE"
-  ],
+  "files": ["src", "docs", "README.md", "LICENSE"],
   "publishConfig": {
     "access": "public"
   },
@@ -40,6 +28,9 @@
   "scripts": {
     "start": "bun run src/cli.ts",
     "test": "bun test src/**/*.test.ts",
+    "lint": "bunx @biomejs/biome lint .",
+    "format:check": "bunx @biomejs/biome check --formatter-enabled=true --linter-enabled=false .",
+    "format": "bunx @biomejs/biome format --write .",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "changeset publish --provenance",
@@ -55,6 +46,7 @@
     "viem": "^2.38.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@changesets/cli": "^2.30.0",
     "@types/bun": "latest"
   },

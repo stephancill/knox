@@ -99,7 +99,7 @@ export class PluginRunner {
       }
       const start = performance.now();
       try {
-        const result = await withTimeout<BeforeTransactionResult | void>({
+        const result = await withTimeout<BeforeTransactionResult | undefined>({
           promise: Promise.resolve(plugin.beforeTransaction(event)),
           timeoutMs: this.options.timeoutMs,
           label: `${plugin.name}.beforeTransaction`,
@@ -150,7 +150,7 @@ export class PluginRunner {
       }
       const start = performance.now();
       try {
-        const result = await withTimeout<BeforeSignResult | void>({
+        const result = await withTimeout<BeforeSignResult | undefined>({
           promise: Promise.resolve(plugin.beforeSign({ ...event, intent })),
           timeoutMs: this.options.timeoutMs,
           label: `${plugin.name}.beforeSign`,
@@ -242,7 +242,7 @@ export class PluginRunner {
 
       const start = performance.now();
       try {
-        const result = await withTimeout<AccountStatusResult | void>({
+        const result = await withTimeout<AccountStatusResult | undefined>({
           promise: Promise.resolve(plugin.accountStatus(event)),
           timeoutMs: this.options.timeoutMs,
           label: `${plugin.name}.accountStatus`,
@@ -296,7 +296,7 @@ export class PluginRunner {
 
     const start = performance.now();
     try {
-      const result = await withTimeout<PluginSetupResult | void>({
+      const result = await withTimeout<PluginSetupResult | undefined>({
         promise: Promise.resolve(plugin.setup(event)),
         timeoutMs: this.options.timeoutMs,
         label: `${plugin.name}.setup`,

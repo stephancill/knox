@@ -1,4 +1,4 @@
-import { createPublicClient, erc20Abi, formatUnits, http } from "viem";
+import { http, createPublicClient, erc20Abi, formatUnits } from "viem";
 import { base } from "viem/chains";
 
 import type { AccountPlugin } from "../../src/plugins/types.ts";
@@ -92,10 +92,7 @@ const plugin: AccountPlugin = {
     }
 
     return {
-      output: [
-        `Base USDC: ${baseUsdc}`,
-        `Tempo: ${tempoToken}`,
-      ].join("\n"),
+      output: [`Base USDC: ${baseUsdc}`, `Tempo: ${tempoToken}`].join("\n"),
     };
   },
 };

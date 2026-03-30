@@ -37,7 +37,10 @@ function normalizeEvmAddress({ value, field }: { value: unknown; field: string }
   return address as `0x${string}`;
 }
 
-function decodeBase64Json({ payload, errorMessage }: { payload: string; errorMessage: string }): Record<string, unknown> {
+function decodeBase64Json({
+  payload,
+  errorMessage,
+}: { payload: string; errorMessage: string }): Record<string, unknown> {
   try {
     return JSON.parse(Buffer.from(payload, "base64").toString("utf8")) as Record<string, unknown>;
   } catch {
@@ -68,7 +71,9 @@ function parseX402Intent({
   const accepts = Array.isArray(decoded.accepts) ? decoded.accepts : [];
   const supported = accepts
     .map((entry) => entry as Record<string, unknown>)
-    .find((entry) => entry.scheme === "exact" && typeof entry.network === "string" && entry.network.startsWith("eip155:"));
+    .find(
+      (entry) => entry.scheme === "exact" && typeof entry.network === "string" && entry.network.startsWith("eip155:"),
+    );
 
   if (!supported) {
     throw new KnoxError(

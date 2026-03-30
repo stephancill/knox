@@ -1,5 +1,5 @@
 import { getAddress } from "viem";
-import { privateKeyToAccount, type PrivateKeyAccount } from "viem/accounts";
+import { type PrivateKeyAccount, privateKeyToAccount } from "viem/accounts";
 
 import { getDb, nowIso, randomId } from "../store/db.ts";
 
@@ -69,7 +69,9 @@ export function importAccount({
 export function getActiveAccount(): StoredAccount | null {
   const db = getDb();
   const row = db
-    .query("SELECT id, address, private_key, chain_id, source, created_at FROM accounts ORDER BY created_at DESC LIMIT 1")
+    .query(
+      "SELECT id, address, private_key, chain_id, source, created_at FROM accounts ORDER BY created_at DESC LIMIT 1",
+    )
     .get() as Record<string, unknown> | null;
 
   if (!row) {

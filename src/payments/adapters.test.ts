@@ -20,7 +20,7 @@ describe("detectProtocol", () => {
   test("detects mpp from WWW-Authenticate header", () => {
     const response = new Response("{}", {
       status: 402,
-      headers: { "WWW-Authenticate": "Payment method=\"tempo\"" },
+      headers: { "WWW-Authenticate": 'Payment method="tempo"' },
     });
 
     expect(detectProtocol({ response })).toBe("mpp");

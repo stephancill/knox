@@ -14,16 +14,7 @@ describe("parseRequestArgs", () => {
 
   test("parses method, headers, body, and include headers", () => {
     const result = parseRequestArgs({
-      args: [
-        "-X",
-        "patch",
-        "-H",
-        "Authorization: Bearer token",
-        "-d",
-        "hello",
-        "-i",
-        "https://example.com/api",
-      ],
+      args: ["-X", "patch", "-H", "Authorization: Bearer token", "-d", "hello", "-i", "https://example.com/api"],
     });
 
     expect(result.options.method).toBe("PATCH");

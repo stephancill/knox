@@ -5,9 +5,7 @@ export type BeforeTransactionEvent = {
   attempt: number;
 };
 
-export type BeforeTransactionResult =
-  | { action: "continue" }
-  | { action: "abort"; reason: string };
+export type BeforeTransactionResult = { action: "continue" } | { action: "abort"; reason: string };
 
 export type BeforeSignEvent = {
   intent: PaymentIntent;
@@ -56,9 +54,9 @@ export type PluginSetupEvent = {
 
 export type AccountPlugin = {
   name: string;
-  beforeTransaction?: (e: BeforeTransactionEvent) => Promise<BeforeTransactionResult | void>;
-  beforeSign?: (e: BeforeSignEvent) => Promise<BeforeSignResult | void>;
+  beforeTransaction?: (e: BeforeTransactionEvent) => Promise<BeforeTransactionResult | undefined>;
+  beforeSign?: (e: BeforeSignEvent) => Promise<BeforeSignResult | undefined>;
   afterTransaction?: (e: AfterTransactionEvent) => Promise<void>;
-  accountStatus?: (e: AccountStatusEvent) => Promise<AccountStatusResult | void>;
-  setup?: (e: PluginSetupEvent) => Promise<PluginSetupResult | void>;
+  accountStatus?: (e: AccountStatusEvent) => Promise<AccountStatusResult | undefined>;
+  setup?: (e: PluginSetupEvent) => Promise<PluginSetupResult | undefined>;
 };
