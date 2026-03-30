@@ -47,11 +47,18 @@ export type PluginSetupResult = {
   output?: string;
 };
 
+export type PluginSetupEvent = {
+  account: {
+    address: `0x${string}`;
+    source: string;
+  } | null;
+};
+
 export type AccountPlugin = {
   name: string;
   beforeTransaction?: (e: BeforeTransactionEvent) => Promise<BeforeTransactionResult | void>;
   beforeSign?: (e: BeforeSignEvent) => Promise<BeforeSignResult | void>;
   afterTransaction?: (e: AfterTransactionEvent) => Promise<void>;
   accountStatus?: (e: AccountStatusEvent) => Promise<AccountStatusResult | void>;
-  setup?: () => Promise<PluginSetupResult | void>;
+  setup?: (e: PluginSetupEvent) => Promise<PluginSetupResult | void>;
 };

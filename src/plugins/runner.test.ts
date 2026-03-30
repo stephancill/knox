@@ -171,7 +171,8 @@ describe("PluginRunner", () => {
       plugins: [
         {
           name: "setup-ok",
-          async setup() {
+          async setup({ account }) {
+            expect(account?.address).toBe("0x0000000000000000000000000000000000000001");
             return { output: "ready" };
           },
         },
@@ -179,7 +180,15 @@ describe("PluginRunner", () => {
       options: { timeoutMs: 1000 },
     });
 
-    const result = await runner.runSetup({ pluginName: "setup-ok" });
+    const result = await runner.runSetup({
+      pluginName: "setup-ok",
+      event: {
+        account: {
+          address: "0x0000000000000000000000000000000000000001",
+          source: "created",
+        },
+      },
+    });
     expect(result).toEqual({
       pluginName: "setup-ok",
       output: "ready",
@@ -194,8 +203,13 @@ describe("PluginRunner", () => {
       options: { timeoutMs: 1000 },
     });
 
-    await expect(runner.runSetup({ pluginName: "no-setup" })).rejects.toThrow(
-      "Plugin does not implement setup(): no-setup",
-    );
+    await expect(
+      runner.runSetup({
+        pluginName: "no-setup",
+        event: {
+          account: null,
+        },
+      }),
+    ).rejects.toThrow("Plugin does not implement setup(): no-setup");
   });
 });

@@ -10,6 +10,7 @@ import type {
   BeforeSignResult,
   BeforeTransactionEvent,
   BeforeTransactionResult,
+  PluginSetupEvent,
   PluginSetupResult,
 } from "./types.ts";
 
@@ -284,7 +285,7 @@ export class PluginRunner {
     return outputs;
   }
 
-  async runSetup({ pluginName }: { pluginName: string }): Promise<PluginSetupOutput> {
+  async runSetup({ pluginName, event }: { pluginName: string; event: PluginSetupEvent }): Promise<PluginSetupOutput> {
     const plugin = this.plugins.find((item) => item.name === pluginName);
     if (!plugin) {
       throw new Error(`Plugin not found: ${pluginName}`);
@@ -296,7 +297,7 @@ export class PluginRunner {
     const start = performance.now();
     try {
       const result = await withTimeout<PluginSetupResult | void>({
-        promise: Promise.resolve(plugin.setup()),
+        promise: Promise.resolve(plugin.setup(event)),
         timeoutMs: this.options.timeoutMs,
         label: `${plugin.name}.setup`,
       });

@@ -88,7 +88,7 @@ knox request --protocol mpp "https://lorem.steer.fun/generate?count=1&units=para
 ```ts
 export type AccountPlugin = {
   name: string;
-  setup?: () => Promise<PluginSetupResult | void>;
+  setup?: (event: PluginSetupEvent) => Promise<PluginSetupResult | void>;
   beforeTransaction?: (event: BeforeTransactionEvent) => Promise<BeforeTransactionResult | void>;
   beforeSign?: (event: BeforeSignEvent) => Promise<BeforeSignResult | void>;
   afterTransaction?: (event: AfterTransactionEvent) => Promise<void>;
@@ -110,6 +110,13 @@ type BeforeSignResult =
 type AccountStatusResult = { output: string };
 
 type PluginSetupResult = { output?: string };
+
+type PluginSetupEvent = {
+  account: {
+    address: `0x${string}`;
+    source: string;
+  } | null;
+};
 ```
 4. Use plugin events:
    - `setup`
@@ -122,7 +129,7 @@ type PluginSetupResult = { output?: string };
    - `beforeSign`: run before signing and can return `intentOverride`.
    - `afterTransaction`: run after payment attempt; failures are logged and do not block command success.
    - `accountStatus`: run during `knox account status`; plugin output is displayed under account address/source with plugin name.
-   - `setup`: run on demand via `knox plugins setup <plugin-name>`.
+   - `setup`: run on demand via `knox plugins setup <plugin-name>` and receives current account context (or `null`).
 6. Expect output formatting for account status:
    - Knox prints:
      - `Active account: <address>`

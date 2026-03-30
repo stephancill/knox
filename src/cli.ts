@@ -66,6 +66,7 @@ async function handlePluginSetup({
   pluginName: string;
   timeoutMs: number;
 }): Promise<void> {
+  const active = getActiveAccount();
   const plugins = await loadPlugins({ cwd });
   const runner = new PluginRunner({
     plugins,
@@ -74,7 +75,17 @@ async function handlePluginSetup({
     },
   });
 
-  const result = await runner.runSetup({ pluginName });
+  const result = await runner.runSetup({
+    pluginName,
+    event: {
+      account: active
+        ? {
+            address: active.address,
+            source: active.source,
+          }
+        : null,
+    },
+  });
   console.log(`Setup complete: ${result.pluginName}`);
   if (result.output) {
     for (const line of formatPluginOutputLines({ output: result.output })) {

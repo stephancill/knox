@@ -74,7 +74,7 @@ Plugin module shape:
 ```ts
 export type AccountPlugin = {
   name: string;
-  setup?: () => Promise<PluginSetupResult | void>;
+  setup?: (event: PluginSetupEvent) => Promise<PluginSetupResult | void>;
   beforeTransaction?: (event: BeforeTransactionEvent) => Promise<BeforeTransactionResult | void>;
   beforeSign?: (event: BeforeSignEvent) => Promise<BeforeSignResult | void>;
   afterTransaction?: (event: AfterTransactionEvent) => Promise<void>;
@@ -96,6 +96,13 @@ type BeforeSignResult =
 type AccountStatusResult = { output: string };
 
 type PluginSetupResult = { output?: string };
+
+type PluginSetupEvent = {
+  account: {
+    address: `0x${string}`;
+    source: string;
+  } | null;
+};
 ```
 
 Behavior:
@@ -104,7 +111,7 @@ Behavior:
 - `beforeSign`: fail-closed, can block payment and optionally mutate `PaymentIntent` via `intentOverride`.
 - `afterTransaction`: fail-open, errors are logged.
 - `accountStatus`: runs during `knox account status`; output is rendered as multiline text under plugin name.
-- `setup`: runs when invoking `knox plugins setup <plugin-name>`.
+- `setup`: runs when invoking `knox plugins setup <plugin-name>` and receives current account context (or `null`).
 
 Minimal plugin example:
 
