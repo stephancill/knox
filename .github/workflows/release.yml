@@ -41,7 +41,7 @@ jobs:
       - name: Create release PR or publish
         uses: changesets/action@v1
         with:
-          version: bun run version-packages && bun run format
+          version: bun run version-packages
           publish: bun run release
           commit: "chore: version packages"
           title: "chore: version packages"

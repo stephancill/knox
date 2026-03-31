@@ -32,7 +32,7 @@
     "format:check": "bunx @biomejs/biome check --formatter-enabled=true --linter-enabled=false .",
     "format": "bunx @biomejs/biome format --write .",
     "changeset": "changeset",
-    "version-packages": "changeset version",
+    "version-packages": "changeset version && bun run format",
     "release": "changeset publish --provenance",
     "typecheck": "bunx tsc --noEmit",
     "prepublishOnly": "bun run typecheck",
