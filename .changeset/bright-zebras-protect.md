@@ -1,5 +1,5 @@
 ---
-"knox-wallet": minor
+"knox-wallet": patch
 ---
 
 Flatten plugin hook context to expose a common top-level `userAddress` field on all hook payloads.

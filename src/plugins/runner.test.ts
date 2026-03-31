@@ -208,4 +208,130 @@ describe("PluginRunner", () => {
       }),
     ).rejects.toThrow("Plugin does not implement setup(): no-setup");
   });
+
+  test("persists plugin kv between setup and other hooks", async () => {
+    await setupIsolatedHome();
+
+    const plugins: AccountPlugin[] = [
+      {
+        name: "stateful",
+        async setup({ kv }) {
+          await kv.set({
+            key: "config",
+            value: {
+              nested: {
+                enabled: true,
+              },
+              list: [1, "two", null],
+            },
+          });
+          return { output: "saved" };
+        },
+        async accountStatus({ kv }) {
+          const config = await kv.get({ key: "config" });
+          return { output: JSON.stringify(config) };
+        },
+      },
+    ];
+
+    const setupRunner = new PluginRunner({ plugins, options: {} });
+    await setupRunner.runSetup({
+      pluginName: "stateful",
+      event: {
+        userAddress: "0x0000000000000000000000000000000000000001",
+      },
+    });
+
+    const statusRunner = new PluginRunner({ plugins, options: {} });
+    const outputs = await statusRunner.runAccountStatus({
+      event: {
+        userAddress: "0x0000000000000000000000000000000000000001",
+        accountSource: "created",
+      },
+    });
+
+    expect(outputs).toEqual([
+      {
+        pluginName: "stateful",
+        output: '{"nested":{"enabled":true},"list":[1,"two",null]}',
+      },
+    ]);
+  });
+
+  test("isolates kv keys by plugin name", async () => {
+    await setupIsolatedHome();
+
+    const plugins: AccountPlugin[] = [
+      {
+        name: "alpha",
+        async setup({ kv }) {
+          await kv.set({ key: "token", value: "alpha-value" });
+          return { output: "ok" };
+        },
+        async accountStatus({ kv }) {
+          const token = await kv.get({ key: "token" });
+          return { output: String(token) };
+        },
+      },
+      {
+        name: "beta",
+        async setup({ kv }) {
+          await kv.set({ key: "token", value: "beta-value" });
+          return { output: "ok" };
+        },
+        async accountStatus({ kv }) {
+          const token = await kv.get({ key: "token" });
+          return { output: String(token) };
+        },
+      },
+    ];
+
+    const runner = new PluginRunner({ plugins, options: {} });
+    await runner.runSetup({
+      pluginName: "alpha",
+      event: { userAddress: null },
+    });
+    await runner.runSetup({
+      pluginName: "beta",
+      event: { userAddress: null },
+    });
+
+    const outputs = await runner.runAccountStatus({
+      event: {
+        userAddress: "0x0000000000000000000000000000000000000001",
+        accountSource: "imported",
+      },
+    });
+
+    expect(outputs).toEqual([
+      { pluginName: "alpha", output: "alpha-value" },
+      { pluginName: "beta", output: "beta-value" },
+    ]);
+  });
+
+  test("returns undefined for missing kv key", async () => {
+    await setupIsolatedHome();
+
+    const runner = new PluginRunner({
+      plugins: [
+        {
+          name: "missing-key",
+          async accountStatus({ kv }) {
+            const value = await kv.get({ key: "does-not-exist" });
+            return { output: value === undefined ? "undefined" : "unexpected" };
+          },
+        },
+      ],
+      options: {},
+    });
+
+    const outputs = await runner.runAccountStatus({
+      event: {
+        userAddress: "0x0000000000000000000000000000000000000001",
+        accountSource: "created",
+      },
+    });
+
+    expect(outputs).toEqual([{ pluginName: "missing-key", output: "undefined" }]);
+  });
 });

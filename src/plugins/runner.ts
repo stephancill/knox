@@ -10,6 +10,8 @@ import type {
   BeforeSignResult,
   BeforeTransactionEvent,
   BeforeTransactionResult,
+  JsonValue,
+  PluginKvStore,
   PluginSetupEvent,
   PluginSetupResult,
 } from "./types.ts";
@@ -27,6 +29,12 @@ export type PluginSetupOutput = {
 type RunnerOptions = {
   transactionId?: string;
 };
+
+type RunnerBeforeTransactionEvent = Omit<BeforeTransactionEvent, "kv">;
+type RunnerBeforeSignEvent = Omit<BeforeSignEvent, "kv">;
+type RunnerAfterTransactionEvent = Omit<AfterTransactionEvent, "kv">;
+type RunnerAccountStatusEvent = Omit<AccountStatusEvent, "kv">;
+type RunnerPluginSetupEvent = Omit<PluginSetupEvent, "kv">;
 
 function logPluginRun({
   options,
@@ -68,14 +76,36 @@ export class PluginRunner {
     this.options = options;
   }
 
-  async runBeforeTransaction({ event }: { event: BeforeTransactionEvent }): Promise<void> {
+  private createPluginKvStore({ pluginName }: { pluginName: string }): PluginKvStore {
+    return {
+      get: async ({ key }) => {
+        const db = getDb();
+        const row = db
+          .query("SELECT value_json FROM plugin_kv WHERE plugin_name = ? AND kv_key = ? LIMIT 1")
+          .get(pluginName, key) as { value_json: string } | null;
+        if (!row) {
+          return undefined;
+        }
+        return JSON.parse(row.value_json) as JsonValue;
+      },
+      set: async ({ key, value }) => {
+        const db = getDb();
+        db.query(
+          "INSERT INTO plugin_kv (plugin_name, kv_key, value_json, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(plugin_name, kv_key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at",
+        ).run(pluginName, key, JSON.stringify(value), nowIso());
+      },
+    };
+  }
+
+  async runBeforeTransaction({ event }: { event: RunnerBeforeTransactionEvent }): Promise<void> {
     for (const plugin of this.plugins) {
       if (!plugin.beforeTransaction) {
         continue;
       }
+      const kv = this.createPluginKvStore({ pluginName: plugin.name });
       const start = performance.now();
       try {
-        const result = await Promise.resolve(plugin.beforeTransaction(event));
+        const result = await Promise.resolve(plugin.beforeTransaction({ ...event, kv }));
         const ms = Math.round(performance.now() - start);
         if (result?.action === "abort") {
           logPluginRun({
@@ -114,15 +144,16 @@ export class PluginRunner {
     }
   }
 
-  async runBeforeSign({ event }: { event: BeforeSignEvent }): Promise<PaymentIntent> {
+  async runBeforeSign({ event }: { event: RunnerBeforeSignEvent }): Promise<PaymentIntent> {
     let intent = event.intent;
     for (const plugin of this.plugins) {
       if (!plugin.beforeSign) {
         continue;
       }
+      const kv = this.createPluginKvStore({ pluginName: plugin.name });
       const start = performance.now();
       try {
-        const result = await Promise.resolve(plugin.beforeSign({ ...event, intent }));
+        const result = await Promise.resolve(plugin.beforeSign({ ...event, intent, kv }));
         const ms = Math.round(performance.now() - start);
         if (result?.action === "abort") {
           logPluginRun({
@@ -166,14 +197,15 @@ export class PluginRunner {
     return intent;
   }
 
-  async runAfterTransaction({ event }: { event: AfterTransactionEvent }): Promise<void> {
+  async runAfterTransaction({ event }: { event: RunnerAfterTransactionEvent }): Promise<void> {
     for (const plugin of this.plugins) {
       if (!plugin.afterTransaction) {
         continue;
       }
+      const kv = this.createPluginKvStore({ pluginName: plugin.name });
       const start = performance.now();
       try {
-        await Promise.resolve(plugin.afterTransaction(event));
+        await Promise.resolve(plugin.afterTransaction({ ...event, kv }));
         const ms = Math.round(performance.now() - start);
         logPluginRun({
           options: this.options,
@@ -197,16 +229,17 @@ export class PluginRunner {
     }
   }
 
-  async runAccountStatus({ event }: { event: AccountStatusEvent }): Promise<AccountStatusPluginOutput[]> {
+  async runAccountStatus({ event }: { event: RunnerAccountStatusEvent }): Promise<AccountStatusPluginOutput[]> {
     const outputs: AccountStatusPluginOutput[] = [];
     for (const plugin of this.plugins) {
       if (!plugin.accountStatus) {
         continue;
       }
+      const kv = this.createPluginKvStore({ pluginName: plugin.name });
 
       const start = performance.now();
       try {
-        const result = await Promise.resolve(plugin.accountStatus(event));
+        const result = await Promise.resolve(plugin.accountStatus({ ...event, kv }));
         const ms = Math.round(performance.now() - start);
         logPluginRun({
           options: this.options,
@@ -245,7 +278,13 @@ export class PluginRunner {
     return outputs;
   }
 
-  async runSetup({ pluginName, event }: { pluginName: string; event: PluginSetupEvent }): Promise<PluginSetupOutput> {
+  async runSetup({
+    pluginName,
+    event,
+  }: {
+    pluginName: string;
+    event: RunnerPluginSetupEvent;
+  }): Promise<PluginSetupOutput> {
     const plugin = this.plugins.find((item) => item.name === pluginName);
     if (!plugin) {
       throw new Error(`Plugin not found: ${pluginName}`);
@@ -256,7 +295,8 @@ export class PluginRunner {
 
     const start = performance.now();
     try {
-      const result = await Promise.resolve(plugin.setup(event));
+      const kv = this.createPluginKvStore({ pluginName: plugin.name });
+      const result = await Promise.resolve(plugin.setup({ ...event, kv }));
       const ms = Math.round(performance.now() - start);
       logPluginRun({
         options: this.options,
