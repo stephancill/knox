@@ -1,5 +1,17 @@
 # knox-wallet
 
+## 0.0.5
+
+### Patch Changes
+
+- 251d806: Flatten plugin hook context to expose a common top-level `userAddress` field on all hook payloads.
+
+  Hook-specific data remains on each event, but shared account identity is no longer nested under `context` or `account` wrapper objects.
+
+- 251d806: Add a persistent, plugin-scoped JSON key-value store to plugin hook events via `event.kv`.
+
+  Plugins can now write values during `setup` and read them later from `beforeTransaction`, `beforeSign`, `afterTransaction`, and `accountStatus`.
+
 ## 0.0.4
 
 ### Patch Changes
