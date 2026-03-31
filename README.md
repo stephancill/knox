@@ -59,13 +59,20 @@ knox plugins setup <plugin-name>
 Plugin module shape:
 
 ```ts
+type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
+type PluginKvStore = {
+  get: (params: { key: string }) => Promise<JsonValue | undefined>;
+  set: (params: { key: string; value: JsonValue }) => Promise<void>;
+};
+
 export type AccountPlugin = {
   name: string;
-  setup?: (event: PluginSetupEvent) => Promise<PluginSetupResult | void>;
-  beforeTransaction?: (event: BeforeTransactionEvent) => Promise<BeforeTransactionResult | void>;
-  beforeSign?: (event: BeforeSignEvent) => Promise<BeforeSignResult | void>;
+  setup?: (event: PluginSetupEvent) => Promise<PluginSetupResult | undefined>;
+  beforeTransaction?: (event: BeforeTransactionEvent) => Promise<BeforeTransactionResult | undefined>;
+  beforeSign?: (event: BeforeSignEvent) => Promise<BeforeSignResult | undefined>;
   afterTransaction?: (event: AfterTransactionEvent) => Promise<void>;
-  accountStatus?: (event: AccountStatusEvent) => Promise<AccountStatusResult | void>;
+  accountStatus?: (event: AccountStatusEvent) => Promise<AccountStatusResult | undefined>;
 };
 ```
 
@@ -85,10 +92,38 @@ type AccountStatusResult = { output: string };
 type PluginSetupResult = { output?: string };
 
 type PluginSetupEvent = {
-  account: {
-    address: `0x${string}`;
-    source: string;
-  } | null;
+  userAddress: `0x${string}` | null;
+  kv: PluginKvStore;
+};
+
+type BeforeTransactionEvent = {
+  userAddress: `0x${string}`;
+  intent: PaymentIntent;
+  attempt: number;
+  kv: PluginKvStore;
+};
+
+type BeforeSignEvent = {
+  userAddress: `0x${string}`;
+  intent: PaymentIntent;
+  challengeRaw: unknown;
+  attempt: number;
+  kv: PluginKvStore;
+};
+
+type AfterTransactionEvent = {
+  userAddress: `0x${string}`;
+  intent: PaymentIntent;
+  success: boolean;
+  responseStatus?: number;
+  error?: string;
+  kv: PluginKvStore;
+};
+
+type AccountStatusEvent = {
+  userAddress: `0x${string}`;
+  accountSource: string;
+  kv: PluginKvStore;
 };
 ```
 
@@ -98,16 +133,21 @@ Behavior:
 - `beforeSign`: fail-closed, can block payment and optionally mutate `PaymentIntent` via `intentOverride`.
 - `afterTransaction`: fail-open, errors are logged.
 - `accountStatus`: runs during `knox account status`; output is rendered as multiline text under plugin name.
-- `setup`: runs when invoking `knox plugins setup <plugin-name>` and receives current account context (or `null`).
+- `setup`: runs when invoking `knox plugins setup <plugin-name>` and receives `userAddress` (or `null`).
+- `kv`: persistent, plugin-scoped JSON key-value store available in all hook events.
 
 Minimal plugin example:
 
 ```ts
 export default {
   name: "status-note",
-  async accountStatus() {
+  async setup({ kv }) {
+    await kv.set({ key: "message", value: "All systems nominal" });
+  },
+  async accountStatus({ kv }) {
+    const message = await kv.get({ key: "message" });
     return {
-      output: "All systems nominal\nReady to pay",
+      output: `${message ?? "Ready"}\nReady to pay`,
     };
   },
 };

@@ -1,19 +1,31 @@
 import type { PaymentIntent } from "../types.ts";
 
+type UserAddressContext = {
+  userAddress: `0x${string}`;
+};
+
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
+export type PluginKvStore = {
+  get: (params: { key: string }) => Promise<JsonValue | undefined>;
+  set: (params: { key: string; value: JsonValue }) => Promise<void>;
+};
+
 export type BeforeTransactionEvent = {
+  userAddress: UserAddressContext["userAddress"];
   intent: PaymentIntent;
   attempt: number;
+  kv: PluginKvStore;
 };
 
 export type BeforeTransactionResult = { action: "continue" } | { action: "abort"; reason: string };
 
 export type BeforeSignEvent = {
+  userAddress: UserAddressContext["userAddress"];
   intent: PaymentIntent;
-  account: {
-    address: `0x${string}`;
-  };
   challengeRaw: unknown;
   attempt: number;
+  kv: PluginKvStore;
 };
 
 export type BeforeSignResult =
@@ -24,17 +36,18 @@ export type BeforeSignResult =
   | { action: "abort"; reason: string };
 
 export type AfterTransactionEvent = {
+  userAddress: UserAddressContext["userAddress"];
   intent: PaymentIntent;
   success: boolean;
   responseStatus?: number;
   error?: string;
+  kv: PluginKvStore;
 };
 
 export type AccountStatusEvent = {
-  account: {
-    address: `0x${string}`;
-    source: string;
-  };
+  userAddress: UserAddressContext["userAddress"];
+  accountSource: string;
+  kv: PluginKvStore;
 };
 
 export type AccountStatusResult = {
@@ -46,10 +59,8 @@ export type PluginSetupResult = {
 };
 
 export type PluginSetupEvent = {
-  account: {
-    address: `0x${string}`;
-    source: string;
-  } | null;
+  userAddress: UserAddressContext["userAddress"] | null;
+  kv: PluginKvStore;
 };
 
 export type AccountPlugin = {

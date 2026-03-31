@@ -52,6 +52,14 @@ export function getDb(): Database {
       error TEXT,
       created_at TEXT NOT NULL
     );
+
+    CREATE TABLE IF NOT EXISTS plugin_kv (
+      plugin_name TEXT NOT NULL,
+      kv_key TEXT NOT NULL,
+      value_json TEXT NOT NULL,
+      updated_at TEXT NOT NULL,
+      PRIMARY KEY (plugin_name, kv_key)
+    );
   `);
 
   return db;
