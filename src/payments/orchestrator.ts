@@ -16,7 +16,6 @@ type RequestWithPaymentOptions = {
   url: string;
   request: RequestOptions;
   cwd: string;
-  disablePlugins: boolean;
   preferredProtocol: "auto" | "x402" | "mpp";
   dryRun: boolean;
 };
@@ -227,7 +226,6 @@ export async function requestWithPayment({
   url,
   request,
   cwd,
-  disablePlugins,
   preferredProtocol,
   dryRun,
 }: RequestWithPaymentOptions): Promise<Response> {
@@ -252,7 +250,7 @@ export async function requestWithPayment({
   }
 
   const txId = randomId({ prefix: "tx" });
-  const plugins = disablePlugins || dryRun ? [] : await loadPlugins({ cwd });
+  const plugins = dryRun ? [] : await loadPlugins({ cwd });
   const runner = new PluginRunner({
     plugins,
     options: {

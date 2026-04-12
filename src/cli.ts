@@ -11,21 +11,18 @@ import { getDb } from "./store/db.ts";
 import { KnoxError } from "./types.ts";
 
 type GlobalFlags = {
-  disablePlugins: boolean;
   protocol: "auto" | "x402" | "mpp";
   dryRun: boolean;
 };
 
 type RootOptions = {
   dryRun?: boolean;
-  plugins?: boolean;
   protocol?: "auto" | "x402" | "mpp";
 };
 
 function getGlobalFlags({ program }: { program: Command }): GlobalFlags {
   const options = program.opts<RootOptions>();
   return {
-    disablePlugins: options.plugins === false,
     protocol: options.protocol ?? "auto",
     dryRun: options.dryRun ?? false,
   };
@@ -115,7 +112,6 @@ async function handleRequest({ args, flags, cwd }: { args: string[]; flags: Glob
     url: parsed.url,
     request: parsed.options,
     cwd,
-    disablePlugins: flags.disablePlugins,
     preferredProtocol: flags.protocol,
     dryRun: flags.dryRun,
   });
@@ -171,7 +167,6 @@ async function main(): Promise<void> {
     .description("curl-like crypto payment CLI")
     .showHelpAfterError()
     .option("--dry-run", "Parse payment challenge and print plan without signing or paying")
-    .option("--no-plugins", "Disable all plugins")
     .addOption(
       new Command()
         .createOption("--protocol <protocol>", "Preferred payment protocol")
@@ -191,30 +186,27 @@ async function main(): Promise<void> {
         return;
       }
 
-      const flags = getGlobalFlags({ program });
       console.log(`Active account: ${active.address}`);
       console.log(`Source: ${active.source}`);
 
-      if (!flags.disablePlugins) {
-        const plugins = await loadPlugins({ cwd });
-        const runner = new PluginRunner({
-          plugins,
-          options: {},
-        });
-        const outputs = await runner.runAccountStatus({
-          event: {
-            userAddress: active.address,
-            accountSource: active.source,
-          },
-        });
+      const plugins = await loadPlugins({ cwd });
+      const runner = new PluginRunner({
+        plugins,
+        options: {},
+      });
+      const outputs = await runner.runAccountStatus({
+        event: {
+          userAddress: active.address,
+          accountSource: active.source,
+        },
+      });
 
-        if (outputs.length > 0) {
-          console.log("Plugin outputs:");
-          for (const item of outputs) {
-            console.log(`${item.pluginName}:`);
-            for (const line of formatPluginOutputLines({ output: item.output })) {
-              console.log(line);
-            }
+      if (outputs.length > 0) {
+        console.log("Plugin outputs:");
+        for (const item of outputs) {
+          console.log(`${item.pluginName}:`);
+          for (const line of formatPluginOutputLines({ output: item.output })) {
+            console.log(line);
           }
         }
       }
