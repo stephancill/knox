@@ -1,3 +1,5 @@
+import { base } from "viem/chains";
+
 import type { PaymentIntent, Protocol } from "../types.ts";
 import { KnoxError } from "../types.ts";
 
@@ -168,7 +170,7 @@ export async function detectProtocolFromBody({ response }: { response: Response 
   return detectProtocol({ response });
 }
 
-const BASE_CHAIN_ID = 8453;
+const BASE_CHAIN_ID = base.id;
 
 export function parseX402IntentFromBody({
   url,
