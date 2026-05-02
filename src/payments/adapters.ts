@@ -153,23 +153,82 @@ export function detectProtocol({ response }: { response: Response }): Protocol |
   return null;
 }
 
+export async function detectProtocolFromBody({ response }: { response: Response }): Promise<Protocol | null> {
+  try {
+    const cloned = response.clone();
+    const body = await cloned.text();
+    const parsed = JSON.parse(body) as Record<string, unknown>;
+    if (parsed.x402Version && Array.isArray(parsed.accepts)) {
+      return "x402";
+    }
+  } catch {
+    // body is not JSON or doesn't contain x402 fields
+  }
+
+  return detectProtocol({ response });
+}
+
+const BASE_CHAIN_ID = 8453;
+
+export function parseX402IntentFromBody({
+  url,
+  method,
+  body,
+}: {
+  url: string;
+  method: string;
+  body: string;
+}): PaymentIntent {
+  const parsed = JSON.parse(body) as Record<string, unknown>;
+  const accepts = Array.isArray(parsed.accepts) ? parsed.accepts : [];
+  const supported = accepts
+    .map((entry) => entry as Record<string, unknown>)
+    .find((entry) => entry.scheme === "exact" && typeof entry.network === "string" && entry.network === "base");
+
+  if (!supported) {
+    throw new KnoxError(
+      "PRECONDITION_FAILED",
+      "No supported x402 accepted payment option found (requires exact scheme on base)",
+    );
+  }
+
+  const amount = String(supported.maxAmountRequired ?? supported.amount ?? "0");
+
+  return {
+    protocol: "x402",
+    mode: "exact",
+    network: `eip155:${BASE_CHAIN_ID}`,
+    chainId: BASE_CHAIN_ID,
+    asset: normalizeEvmAddress({ value: supported.asset, field: "asset" }),
+    amount: parseAmountAsBigInt({ value: amount }),
+    payTo: normalizeEvmAddress({ value: supported.payTo, field: "payTo" }),
+    requestUrl: url,
+    requestMethod: method,
+  };
+}
+
 export function parseIntentFromChallenge({
   protocol,
   response,
   url,
   method,
+  x402Body,
 }: {
   protocol: Protocol;
   response: Response;
   url: string;
   method: string;
+  x402Body?: string;
 }): PaymentIntent {
   if (protocol === "x402") {
     const header = response.headers.get("PAYMENT-REQUIRED");
-    if (!header) {
-      throw new KnoxError("CHALLENGE_PARSE_ERROR", "Missing PAYMENT-REQUIRED header");
+    if (header) {
+      return parseX402Intent({ url, method, header });
     }
-    return parseX402Intent({ url, method, header });
+    if (x402Body) {
+      return parseX402IntentFromBody({ url, method, body: x402Body });
+    }
+    throw new KnoxError("CHALLENGE_PARSE_ERROR", "Missing PAYMENT-REQUIRED header or x402 body");
   }
 
   const header = response.headers.get("WWW-Authenticate");

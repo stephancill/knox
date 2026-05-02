@@ -10,7 +10,7 @@ import { PluginRunner } from "../plugins/runner.ts";
 import { getDb, nowIso, randomId } from "../store/db.ts";
 import type { PaymentIntent } from "../types.ts";
 import { KnoxError } from "../types.ts";
-import { detectProtocol, parseIntentFromChallenge } from "./adapters.ts";
+import { detectProtocol, detectProtocolFromBody, parseIntentFromChallenge } from "./adapters.ts";
 
 type RequestWithPaymentOptions = {
   url: string;
@@ -20,24 +20,26 @@ type RequestWithPaymentOptions = {
   dryRun: boolean;
 };
 
-function resolveProtocol({
+async function resolveProtocol({
   response,
   preferredProtocol,
 }: {
   response: Response;
   preferredProtocol: "auto" | "x402" | "mpp";
-}): "x402" | "mpp" | null {
-  const hasX402 = response.headers.get("PAYMENT-REQUIRED") != null;
-  const hasMpp = response.headers.get("WWW-Authenticate") != null;
+}): Promise<"x402" | "mpp" | null> {
+  const headerProtocol = detectProtocol({ response });
+  const bodyProtocol = await detectProtocolFromBody({ response });
 
   if (preferredProtocol === "x402") {
-    return hasX402 ? "x402" : null;
+    if (headerProtocol === "x402" || bodyProtocol === "x402") return "x402";
+    return null;
   }
   if (preferredProtocol === "mpp") {
-    return hasMpp ? "mpp" : null;
+    if (headerProtocol === "mpp" || bodyProtocol === "mpp") return "mpp";
+    return null;
   }
 
-  return detectProtocol({ response });
+  return headerProtocol ?? bodyProtocol;
 }
 
 function logTransaction({
@@ -130,7 +132,7 @@ function requirementMatchesIntent({
   const amount = String(requirement.amount ?? "");
 
   return (
-    network === intent.network &&
+    (network === intent.network || (network === "base" && intent.network === "eip155:8453")) &&
     asset === intent.asset.toLowerCase() &&
     payTo === intent.payTo.toLowerCase() &&
     amount === intent.amount.toString()
@@ -239,7 +241,7 @@ export async function requestWithPayment({
     throw new KnoxError("PRECONDITION_FAILED", "No active account. Run: knox account create or knox account import");
   }
 
-  const protocol = resolveProtocol({
+  const protocol = await resolveProtocol({
     response: initial,
     preferredProtocol,
   });
@@ -247,6 +249,16 @@ export async function requestWithPayment({
     throw new KnoxError("CHALLENGE_PARSE_ERROR", "Received 402 but could not select requested protocol", {
       preferredProtocol,
     });
+  }
+
+  let x402Body: string | undefined;
+  if (protocol === "x402" && !initial.headers.get("PAYMENT-REQUIRED")) {
+    try {
+      const cloned = initial.clone();
+      x402Body = await cloned.text();
+    } catch {
+      // ignore body read errors
+    }
   }
 
   const txId = randomId({ prefix: "tx" });
@@ -263,6 +275,7 @@ export async function requestWithPayment({
     response: initial,
     url,
     method: request.method,
+    x402Body,
   });
 
   if (dryRun) {
@@ -316,8 +329,8 @@ export async function requestWithPayment({
       userAddress: account.address,
       intent: baseIntent,
       challengeRaw: {
-        paymentRequired: initial.headers.get("PAYMENT-REQUIRED"),
-        wwwAuthenticate: initial.headers.get("WWW-Authenticate"),
+        paymentRequired: initial.headers.get("PAYMENT-REQUIRED") ?? undefined,
+        wwwAuthenticate: initial.headers.get("WWW-Authenticate") ?? undefined,
       },
       attempt: 1,
     },
@@ -326,12 +339,38 @@ export async function requestWithPayment({
   assertEvmIntent({ intent });
 
   try {
+    let responseForPayment = initial;
+    if (protocol === "x402" && !initial.headers.get("PAYMENT-REQUIRED") && x402Body) {
+      let normalizedBody = x402Body;
+      try {
+        const parsed = JSON.parse(x402Body) as Record<string, unknown>;
+        if (Array.isArray(parsed.accepts)) {
+          parsed.accepts = (parsed.accepts as Record<string, unknown>[]).map((entry) => {
+            const normalized: Record<string, unknown> = { ...entry };
+            if (entry.maxAmountRequired !== undefined && entry.amount === undefined) {
+              normalized.amount = entry.maxAmountRequired;
+            }
+            return normalized;
+          });
+          normalizedBody = JSON.stringify(parsed);
+        }
+      } catch {
+        // keep original body
+      }
+      const b64Body = Buffer.from(normalizedBody).toString("base64");
+      responseForPayment = new Response(initial.body, {
+        status: initial.status,
+        statusText: initial.statusText,
+        headers: { ...Object.fromEntries(initial.headers), "PAYMENT-REQUIRED": b64Body },
+      });
+    }
+
     const result =
       protocol === "x402"
         ? await payWithX402({
             url,
             request,
-            initial,
+            initial: responseForPayment,
             privateKey: account.privateKey,
             intent,
           })
