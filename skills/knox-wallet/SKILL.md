@@ -75,7 +75,6 @@ knox request --protocol mpp "https://lorem.steer.fun/generate?count=1&units=para
 
 1. `--protocol auto|x402|mpp`
 2. `--dry-run`
-3. `--no-plugins`
 
 ## Plugins
 
@@ -160,7 +159,7 @@ type AccountStatusEvent = {
      - `<plugin-name>:`
      - `  <plugin output line 1>`
      - `  <plugin output line 2>`
-7. Use `--no-plugins` to bypass plugins for troubleshooting.
+7. For plugin troubleshooting, run `knox plugins list` and `knox plugins setup <plugin-name>` to inspect installed plugin behavior.
 
 ## Troubleshooting
 

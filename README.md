@@ -41,7 +41,6 @@ knox plugins setup <plugin-name>
 
 - `--protocol auto|x402|mpp`
 - `--dry-run`
-- `--no-plugins`
 
 ## Account Model
 

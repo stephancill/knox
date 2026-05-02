@@ -136,10 +136,6 @@ Supported module formats:
 1. ESM (`.ts`, `.js`, `.mjs`) with default export.
 2. CommonJS (`.cjs`, `module.exports`) when runtime requires it.
 
-CLI switches:
-
-1. `--no-plugins`: disable all plugins for current request.
-
 ## 7. Key Data Contracts
 
 ### 7.1 Normalized Payment Intent
@@ -281,7 +277,7 @@ Output behavior:
 1. Plugins are local and trusted by operator; no remote loading in MVP.
 2. No secrets printed to logs.
 3. `before*` plugin events fail-closed to avoid unsafe auto-sign.
-4. `--no-plugins` available for operational recovery.
+4. Plugins remain enabled for all paid requests and account status runs.
 
 ## 13. Testing Strategy
 
