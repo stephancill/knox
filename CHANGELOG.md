@@ -1,5 +1,19 @@
 # knox-wallet
 
+## 0.1.0
+
+### Minor Changes
+
+- 27dcd22: Detect x402 from response body for servers that return the payment challenge as JSON (`x402Version` + `accepts`) rather than a `PAYMENT-REQUIRED` header (e.g. Neynar). Only Base-chain v1 intents are supported.
+- 27dcd22: Remove the `--no-plugins` global flag so plugin hooks always run during paid requests and `knox account status`.
+
+  For plugin troubleshooting, use `knox plugins list` and `knox plugins setup <plugin-name>`.
+
+### Patch Changes
+
+- 27dcd22: Publish the CLI as a Node-compatible build artifact so global npm installs no longer require Bun at runtime.
+- 27dcd22: Fix frozen lockfile in CI
+
 ## 0.0.5
 
 ### Patch Changes
