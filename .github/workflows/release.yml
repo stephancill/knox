@@ -20,6 +20,9 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -30,15 +33,16 @@ jobs:
         run: |
           node -v
           npm -v
+          bun -v
 
       - name: Install dependencies
-        run: npm install
+        run: bun install --frozen-lockfile
 
       - name: Create release PR or publish
         uses: changesets/action@v1
         with:
-          version: npm run version-packages
-          publish: npm run release
+          version: bun run version-packages
+          publish: bun run release
           commit: "chore: version packages"
           title: "chore: version packages"
         env:
@@ -55,6 +59,9 @@ jobs:
         with:
           ref: ${{ github.event.pull_request.merge_commit_sha }}
 
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
@@ -65,9 +72,10 @@ jobs:
         run: |
           node -v
           npm -v
+          bun -v
 
       - name: Install dependencies
-        run: npm install
+        run: bun install --frozen-lockfile
 
       - name: Publish to npm
-        run: npm run release
+        run: bun run release
