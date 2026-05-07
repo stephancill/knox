@@ -24,7 +24,7 @@ jobs:
 
           if [ -z "$changeset_files" ]; then
             echo "No changeset file found in this PR."
-            echo "Add one with: bun run changeset"
+            echo "Add one with: npx changeset"
             exit 1
           fi
 
@@ -38,17 +38,19 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v5
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 24
 
       - name: Install dependencies
-        run: bun install --frozen-lockfile
+        run: npm install
 
       - name: Lint
-        run: bun run lint
+        run: npm run lint
 
       - name: Format check
-        run: bun run format:check
+        run: npm run format:check
 
       - name: Typecheck
-        run: bun run typecheck
+        run: npm run typecheck

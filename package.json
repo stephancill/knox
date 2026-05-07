@@ -2,7 +2,9 @@
   "name": "knox-wallet",
   "version": "0.0.5",
   "description": "CLI payment client for x402 and MPP paid APIs",
-  "module": "src/cli.ts",
+  "main": "./dist/cli.js",
+  "module": "./dist/cli.js",
+  "exports": "./dist/cli.js",
   "type": "module",
   "license": "MIT",
   "author": "Stephancill",
@@ -16,43 +18,48 @@
   },
   "keywords": ["cli", "crypto", "wallet", "x402", "mpp", "payments"],
   "engines": {
-    "bun": ">=1.3.0"
+    "node": ">=20"
   },
-  "files": ["src", "docs", "README.md", "LICENSE"],
+  "files": ["dist", "docs", "README.md", "LICENSE"],
   "publishConfig": {
     "access": "public"
   },
   "bin": {
-    "knox": "src/cli.ts"
+    "knox": "dist/cli.js"
   },
   "scripts": {
-    "start": "bun run src/cli.ts",
-    "test": "bun test src/**/*.test.ts",
-    "lint": "bunx @biomejs/biome lint .",
-    "format:check": "bunx @biomejs/biome check --formatter-enabled=true --linter-enabled=false .",
-    "format": "bunx @biomejs/biome format --write .",
+    "start": "node dist/cli.js",
+    "build": "node esbuild.config.js",
+    "dev": "node esbuild.config.js --watch",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "lint": "npx @biomejs/biome lint .",
+    "format:check": "npx @biomejs/biome check --formatter-enabled=true --linter-enabled=false .",
+    "format": "npx @biomejs/biome format --write .",
     "changeset": "changeset",
-    "version-packages": "changeset version && bun run format",
+    "version-packages": "changeset version && npm run format",
     "release": "changeset publish --provenance",
-    "typecheck": "bunx tsc --noEmit",
-    "prepublishOnly": "bun run typecheck",
+    "typecheck": "npx tsc --noEmit",
+    "prepack": "npm run typecheck && npm run build",
     "prepare": "husky"
   },
   "dependencies": {
     "@x402/core": "^2.8.0",
     "@x402/evm": "^2.8.0",
     "@x402/fetch": "^2.8.0",
+    "better-sqlite3": "^11.0.0",
     "commander": "^14.0.3",
+    "dotenv": "^16.4.0",
     "mppx": "^0.4.11",
     "viem": "^2.38.3"
   },
   "devDependencies": {
     "@biomejs/biome": "^1.9.4",
     "@changesets/cli": "^2.30.0",
-    "@types/bun": "latest",
-    "husky": "^9.1.7"
-  },
-  "peerDependencies": {
-    "typescript": "^5"
+    "@types/better-sqlite3": "^7.6.0",
+    "husky": "^9.1.7",
+    "esbuild": "^0.25.0",
+    "vitest": "^3.0.0",
+    "typescript": "^5.8.0"
   }
 }

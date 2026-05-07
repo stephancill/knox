@@ -7,8 +7,8 @@ const BASE_USDC_ADDRESS = "0x833589fCD6eDb6E08f4c7C32D4f71b54bdA02913" as const;
 const TEMPO_TOKEN_ADDRESS = "0x20c000000000000000000000b9537d11c60e8b50" as const;
 
 function resolveRpcUrls(): { baseRpcUrl: string; tempoRpcUrl?: string } {
-  const baseRpcUrl = Bun.env.EVM_RPC_URL_8453 ?? Bun.env.BASE_RPC_URL ?? "https://mainnet.base.org";
-  const tempoRpcUrl = Bun.env.EVM_RPC_URL_4217 ?? Bun.env.TEMPO_RPC_URL ?? "https://tempo-mainnet.drpc.org";
+  const baseRpcUrl = process.env.EVM_RPC_URL_8453 ?? process.env.BASE_RPC_URL ?? "https://mainnet.base.org";
+  const tempoRpcUrl = process.env.EVM_RPC_URL_4217 ?? process.env.TEMPO_RPC_URL ?? "https://tempo-mainnet.drpc.org";
   return { baseRpcUrl, tempoRpcUrl };
 }
 

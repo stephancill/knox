@@ -1,4 +1,6 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
+
+import "dotenv/config";
 
 import { Command } from "commander";
 
@@ -85,7 +87,7 @@ async function handlePluginSetup({
 async function handleTransactionsList(): Promise<void> {
   const db = getDb();
   const rows = db
-    .query("SELECT id, created_at, protocol, status, url FROM transactions ORDER BY created_at DESC LIMIT 50")
+    .prepare("SELECT id, created_at, protocol, status, url FROM transactions ORDER BY created_at DESC LIMIT 50")
     .all() as Array<Record<string, unknown>>;
   for (const row of rows) {
     console.log(`${row.id} ${row.protocol} ${row.status} ${row.url} ${row.created_at}`);
@@ -95,7 +97,7 @@ async function handleTransactionsList(): Promise<void> {
 async function handleTransactionShow({ id }: { id: string }): Promise<void> {
   const db = getDb();
   const row = db
-    .query(
+    .prepare(
       "SELECT id, created_at, protocol, url, method, asset, amount, network, status, tx_hash, error FROM transactions WHERE id = ? LIMIT 1",
     )
     .get(id) as Record<string, unknown> | null;
@@ -291,12 +293,12 @@ async function main(): Promise<void> {
       await handleRequest({ args: curlArgs, flags, cwd });
     });
 
-  if (Bun.argv.length <= 2) {
+  if (process.argv.length <= 2) {
     program.outputHelp();
     return;
   }
 
-  await program.parseAsync(Bun.argv);
+  await program.parseAsync(process.argv);
 }
 
 main().catch((error) => {

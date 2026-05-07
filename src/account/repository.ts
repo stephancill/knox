@@ -51,7 +51,7 @@ export function importAccount({
 
   db.exec("DELETE FROM accounts");
 
-  const stmt = db.query(
+  const stmt = db.prepare(
     "INSERT INTO accounts (id, address, private_key, chain_id, source, is_active, created_at) VALUES (?, ?, ?, ?, ?, ?, ?)",
   );
   stmt.run(id, account.address, normalized, null, source, 1, createdAt);
@@ -69,7 +69,7 @@ export function importAccount({
 export function getActiveAccount(): StoredAccount | null {
   const db = getDb();
   const row = db
-    .query(
+    .prepare(
       "SELECT id, address, private_key, chain_id, source, created_at FROM accounts ORDER BY created_at DESC LIMIT 1",
     )
     .get() as Record<string, unknown> | null;

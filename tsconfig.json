@@ -20,5 +20,5 @@
     "noPropertyAccessFromIndexSignature": false
   },
   "include": ["src/**/*.ts", "examples/**/*.ts"],
-  "exclude": ["third-party", "node_modules"]
+  "exclude": ["third-party", "node_modules", "dist"]
 }
