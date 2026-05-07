@@ -2,6 +2,7 @@ import { x402Client, x402HTTPClient } from "@x402/core/client";
 import { registerExactEvmScheme } from "@x402/evm/exact/client";
 import { Mppx, tempo } from "mppx/client";
 import { privateKeyToAccount } from "viem/accounts";
+import { base } from "viem/chains";
 
 import { getActiveAccount } from "../account/repository.ts";
 import { type RequestOptions, executeHttpRequest } from "../http/request.ts";
@@ -66,7 +67,7 @@ function logTransaction({
   error?: string;
 }): void {
   const db = getDb();
-  const stmt = db.query(
+  const stmt = db.prepare(
     "INSERT INTO transactions (id, created_at, protocol, url, method, asset, amount, network, status, tx_hash, error) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
   );
   stmt.run(
@@ -97,13 +98,13 @@ function assertEvmIntent({ intent }: { intent: PaymentIntent }): void {
 }
 
 function resolveRpcUrl({ chainId }: { chainId: number }): string {
-  const chainScoped = Bun.env[`EVM_RPC_URL_${chainId}`];
+  const chainScoped = process.env[`EVM_RPC_URL_${chainId}`];
   if (chainScoped) {
     return chainScoped;
   }
 
-  if (Bun.env.EVM_RPC_URL) {
-    return Bun.env.EVM_RPC_URL;
+  if (process.env.EVM_RPC_URL) {
+    return process.env.EVM_RPC_URL;
   }
 
   if (chainId === 8453) {
@@ -132,7 +133,7 @@ function requirementMatchesIntent({
   const amount = String(requirement.amount ?? "");
 
   return (
-    (network === intent.network || (network === "base" && intent.network === "eip155:8453")) &&
+    (network === intent.network || (network === "base" && intent.network === `eip155:${base.id}`)) &&
     asset === intent.asset.toLowerCase() &&
     payTo === intent.payTo.toLowerCase() &&
     amount === intent.amount.toString()

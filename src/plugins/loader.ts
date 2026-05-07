@@ -5,7 +5,7 @@ import { pathToFileURL } from "node:url";
 
 import type { AccountPlugin } from "./types.ts";
 
-const PLUGIN_EXTENSIONS = new Set([".ts", ".js", ".mjs", ".cjs"]);
+const PLUGIN_EXTENSIONS = new Set([".js", ".mjs", ".cjs"]);
 
 function pluginDirs({ cwd }: { cwd: string }): string[] {
   return [join(homedir(), ".knox", "plugins"), join(resolve(cwd), ".knox", "plugins")];

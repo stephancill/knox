@@ -52,7 +52,7 @@ function logPluginRun({
   error?: string;
 }): void {
   const db = getDb();
-  const stmt = db.query(
+  const stmt = db.prepare(
     "INSERT INTO plugin_runs (id, transaction_id, plugin_name, event_name, status, duration_ms, error, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)",
   );
   stmt.run(
@@ -81,7 +81,7 @@ export class PluginRunner {
       get: async ({ key }) => {
         const db = getDb();
         const row = db
-          .query("SELECT value_json FROM plugin_kv WHERE plugin_name = ? AND kv_key = ? LIMIT 1")
+          .prepare("SELECT value_json FROM plugin_kv WHERE plugin_name = ? AND kv_key = ? LIMIT 1")
           .get(pluginName, key) as { value_json: string } | null;
         if (!row) {
           return undefined;
@@ -90,7 +90,7 @@ export class PluginRunner {
       },
       set: async ({ key, value }) => {
         const db = getDb();
-        db.query(
+        db.prepare(
           "INSERT INTO plugin_kv (plugin_name, kv_key, value_json, updated_at) VALUES (?, ?, ?, ?) ON CONFLICT(plugin_name, kv_key) DO UPDATE SET value_json = excluded.value_json, updated_at = excluded.updated_at",
         ).run(pluginName, key, JSON.stringify(value), nowIso());
       },

@@ -1,7 +1,7 @@
-import { Database } from "bun:sqlite";
 import { mkdirSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import Database from "better-sqlite3";
 
 export function knoxHomeDir(): string {
   return join(homedir(), ".knox");
@@ -13,7 +13,7 @@ function ensureDir(): string {
   return dir;
 }
 
-export function getDb(): Database {
+export function getDb(): ReturnType<typeof Database> {
   const dir = ensureDir();
   const db = new Database(join(dir, "knox.db"));
 
