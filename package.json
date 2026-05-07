@@ -1,6 +1,6 @@
 {
   "name": "knox-wallet",
-  "version": "0.1.0",
+  "version": "0.0.5",
   "description": "CLI payment client for x402 and MPP paid APIs",
   "main": "./dist/cli.js",
   "module": "./dist/cli.js",
