@@ -97,7 +97,7 @@ function formatTokenUnits({ amount, decimals }: { amount: bigint; decimals: numb
 }
 
 function getMppDeposit({ intent, request }: { intent: PaymentIntent; request: RequestOptions }): string {
-  return request.mppDeposit ?? formatTokenUnits({ amount: intent.amount, decimals: 6 });
+  return request.mppDeposit ?? formatTokenUnits({ amount: intent.suggestedDeposit ?? intent.amount, decimals: 6 });
 }
 
 function assertEvmIntent({ intent }: { intent: PaymentIntent }): void {

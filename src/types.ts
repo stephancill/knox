@@ -7,6 +7,7 @@ export type PaymentIntent = {
   chainId?: number;
   asset: `0x${string}`;
   amount: bigint;
+  suggestedDeposit?: bigint;
   payTo: `0x${string}`;
   requestUrl: string;
   requestMethod: string;

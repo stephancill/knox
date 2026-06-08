@@ -74,13 +74,14 @@ describe("parseIntentFromChallenge", () => {
       amount: "1000",
       currency: "0x20c000000000000000000000b9537d11c60e8b50",
       recipient: "0x8d25687829D6b85d9e0020B8c89e3Ca24dE20a89",
+      suggestedDeposit: "10000",
       methodDetails: { chainId: 4217 },
     };
 
     const response = new Response("{}", {
       status: 402,
       headers: {
-        "WWW-Authenticate": `Payment method=\"tempo\" request=\"${b64({ value: requestPayload })}\"`,
+        "WWW-Authenticate": `Payment method=\"tempo\" intent=\"session\" request=\"${b64({ value: requestPayload })}\"`,
       },
     });
 
@@ -92,10 +93,11 @@ describe("parseIntentFromChallenge", () => {
     });
 
     expect(intent.protocol).toBe("mpp");
-    expect(intent.mode).toBe("charge");
+    expect(intent.mode).toBe("session");
     expect(intent.chainId).toBe(4217);
     expect(intent.network).toBe("eip155:4217");
     expect(intent.amount).toBe(1000n);
+    expect(intent.suggestedDeposit).toBe(10000n);
   });
 
   test("throws KnoxError for malformed x402 header payload", () => {
