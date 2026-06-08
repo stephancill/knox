@@ -124,18 +124,23 @@ function parseMppIntent({
     errorMessage: "Invalid MPP challenge request payload",
   });
 
+  const challengeIntent = findWwwAuthParam({ headerValue: header, key: "intent" });
   const methodDetails = (requestPayload.methodDetails ?? {}) as Record<string, unknown>;
   const chainId = Number(methodDetails.chainId ?? 8453);
   const currency = normalizeEvmAddress({ value: requestPayload.currency, field: "currency" });
   const recipient = normalizeEvmAddress({ value: requestPayload.recipient, field: "recipient" });
+  const suggestedDeposit = requestPayload.suggestedDeposit
+    ? parseAmountAsBigInt({ value: String(requestPayload.suggestedDeposit) })
+    : undefined;
 
   return {
     protocol: "mpp",
-    mode: "charge",
+    mode: challengeIntent === "session" ? "session" : "charge",
     network: `eip155:${chainId}`,
     chainId,
     asset: currency,
     amount: parseAmountAsBigInt({ value: String(requestPayload.amount ?? "0") }),
+    suggestedDeposit,
     payTo: recipient,
     requestUrl: url,
     requestMethod: method,
