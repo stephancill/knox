@@ -85,6 +85,22 @@ function logTransaction({
   );
 }
 
+function formatTokenUnits({ amount, decimals }: { amount: bigint; decimals: number }): string {
+  const divisor = 10n ** BigInt(decimals);
+  const whole = amount / divisor;
+  const fraction = amount % divisor;
+  if (fraction === 0n) {
+    return whole.toString();
+  }
+
+  return `${whole.toString()}.${fraction.toString().padStart(decimals, "0").replace(/0+$/, "")}`;
+}
+
+function getMppDeposit({ intent }: { intent: PaymentIntent }): string {
+  const value = process.env.KNOX_MPP_DEPOSIT?.trim();
+  return value && value.length > 0 ? value : formatTokenUnits({ amount: intent.amount, decimals: 6 });
+}
+
 function assertEvmIntent({ intent }: { intent: PaymentIntent }): void {
   if (!intent.network.startsWith("eip155:")) {
     throw new KnoxError("PRECONDITION_FAILED", "Only EVM networks are supported", {
@@ -204,15 +220,17 @@ async function payWithMpp({
   url,
   request,
   privateKey,
+  intent,
 }: {
   url: string;
   request: RequestOptions;
   privateKey: `0x${string}`;
+  intent: PaymentIntent;
 }): Promise<{ response: Response; txHash?: string }> {
   const account = privateKeyToAccount(privateKey);
   const mppx = Mppx.create({
     fetch: fetch,
-    methods: [tempo({ account })],
+    methods: [tempo({ account, deposit: getMppDeposit({ intent }) })],
     polyfill: false,
   });
 
@@ -379,6 +397,7 @@ export async function requestWithPayment({
             url,
             request,
             privateKey: account.privateKey,
+            intent,
           });
 
     logTransaction({
