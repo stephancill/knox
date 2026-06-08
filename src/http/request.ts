@@ -4,6 +4,7 @@ export type RequestOptions = {
   body?: string;
   includeHeaders: boolean;
   timeoutMs?: number;
+  mppDeposit?: string;
 };
 
 export type RequestParseResult = {
@@ -18,6 +19,7 @@ type ParseState = {
   json?: string;
   includeHeaders: boolean;
   timeoutMs?: number;
+  mppDeposit?: string;
   url?: string;
 };
 
@@ -70,6 +72,11 @@ export function parseRequestArgs({ args }: { args: string[] }): RequestParseResu
       i++;
       continue;
     }
+    if (token === "--mpp-deposit" && next) {
+      state.mppDeposit = next;
+      i++;
+      continue;
+    }
     if (token === "-i") {
       state.includeHeaders = true;
       continue;
@@ -105,6 +112,7 @@ export function parseRequestArgs({ args }: { args: string[] }): RequestParseResu
       body: state.body,
       includeHeaders: state.includeHeaders,
       timeoutMs: state.timeoutMs,
+      mppDeposit: state.mppDeposit,
     },
   };
 }

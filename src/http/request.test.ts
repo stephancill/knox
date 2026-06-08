@@ -41,6 +41,14 @@ describe("parseRequestArgs", () => {
     expect(result.options.timeoutMs).toBe(1500);
   });
 
+  test("parses MPP deposit override", () => {
+    const result = parseRequestArgs({
+      args: ["--mpp-deposit", "0.25", "https://example.com/paid"],
+    });
+
+    expect(result.options.mppDeposit).toBe("0.25");
+  });
+
   test("throws if URL is missing", () => {
     expect(() => parseRequestArgs({ args: ["-H", "x:y"] })).toThrow("Missing request URL");
   });

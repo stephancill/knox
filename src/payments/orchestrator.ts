@@ -96,9 +96,8 @@ function formatTokenUnits({ amount, decimals }: { amount: bigint; decimals: numb
   return `${whole.toString()}.${fraction.toString().padStart(decimals, "0").replace(/0+$/, "")}`;
 }
 
-function getMppDeposit({ intent }: { intent: PaymentIntent }): string {
-  const value = process.env.KNOX_MPP_DEPOSIT?.trim();
-  return value && value.length > 0 ? value : formatTokenUnits({ amount: intent.amount, decimals: 6 });
+function getMppDeposit({ intent, request }: { intent: PaymentIntent; request: RequestOptions }): string {
+  return request.mppDeposit ?? formatTokenUnits({ amount: intent.amount, decimals: 6 });
 }
 
 function assertEvmIntent({ intent }: { intent: PaymentIntent }): void {
@@ -230,7 +229,7 @@ async function payWithMpp({
   const account = privateKeyToAccount(privateKey);
   const mppx = Mppx.create({
     fetch: fetch,
-    methods: [tempo({ account, deposit: getMppDeposit({ intent }) })],
+    methods: [tempo({ account, deposit: getMppDeposit({ intent, request }) })],
     polyfill: false,
   });
 
